@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="SyncStudy — Calendario colaborativo para la organización académica" />
+  <title>SyncStudy</title>
+
+  <!-- Tipografía Inter desde Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+    rel="stylesheet"
+  />
+
+  <!-- Iconos Lucide -->
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+
+  <!-- Hojas de estilo -->
+  <link rel="stylesheet" href="css/reset.css" />
+  <link rel="stylesheet" href="css/variables.css" />
+  <link rel="stylesheet" href="css/layout.css" />
+  <link rel="stylesheet" href="css/components.css" />
+  <link rel="stylesheet" href="css/views.css" />
+</head>
+<body>
+  <!-- =================================================== -->
+  <!-- SIDEBAR DE NAVEGACIÓN -->
+  <!-- =================================================== -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar__brand">
+      <div class="brand__logo">
+        <i data-lucide="calendar-sync"></i>
+      </div>
+      <div class="brand__text">
+        <span class="brand__name">SyncStudy</span>
+        <span class="brand__tagline">Estudia en sincronía</span>
+      </div>
+    </div>
+
+    <nav class="sidebar__nav">
+      <button class="nav-item active" data-view="today">
+        <i data-lucide="sun"></i>
+        <span>Hoy</span>
+      </button>
+      <button class="nav-item" data-view="calendar">
+        <i data-lucide="calendar"></i>
+        <span>Calendario</span>
+      </button>
+      <button class="nav-item" data-view="group">
+        <i data-lucide="users"></i>
+        <span>Mi grupo</span>
+      </button>
+      <button class="nav-item" data-view="weekly">
+        <i data-lucide="bar-chart-3"></i>
+        <span>Resumen semanal</span>
+      </button>
+    </nav>
+
+    <div class="sidebar__user">
+      <div class="user-avatar" id="sidebarAvatar">F</div>
+      <div class="user-info">
+        <span class="user-name" id="sidebarUserName">Fabián Riquelme</span>
+        <span class="user-group" id="sidebarUserGroup">TUPA · 2° año</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- =================================================== -->
+  <!-- ÁREA PRINCIPAL -->
+  <!-- =================================================== -->
+  <main class="main">
+    <!-- Header global -->
+    <header class="topbar">
+      <button class="topbar__menu" id="menuToggle" aria-label="Abrir menú">
+        <i data-lucide="menu"></i>
+      </button>
+      <h1 class="topbar__title" id="topbarTitle">Hoy</h1>
+      <div class="topbar__actions">
+        <button class="btn btn--primary" id="btnNewTask">
+          <i data-lucide="plus"></i>
+          <span>Nueva tarea</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- =================================================== -->
+    <!-- VISTA: HOY -->
+    <!-- =================================================== -->
+    <section class="view view--today active" data-view="today">
+      <div class="view__hero">
+        <div class="hero__greeting">
+          <h2 id="todayGreeting">Buenos días, Fabián</h2>
+          <p id="todayDate">—</p>
+        </div>
+        <div class="hero__group-progress" id="groupProgressCard">
+          <div class="progress-card__header">
+            <i data-lucide="users"></i>
+            <span>Tu grupo hoy</span>
+          </div>
+          <div class="progress-card__bar">
+            <div class="progress-bar">
+              <div class="progress-bar__fill" id="progressBarFill"></div>
+            </div>
+            <span class="progress-card__stat" id="progressStat">0 / 0</span>
+          </div>
+          <p class="progress-card__caption" id="progressCaption">
+            Cuando completes tareas, tu grupo lo verá.
+          </p>
+        </div>
+      </div>
+
+      <div class="view__section">
+        <div class="section__header">
+          <h3>Tus 3 tareas prioritarias</h3>
+          <span class="section__hint">Foco mínimo · máximo impacto</span>
+        </div>
+        <div class="task-list" id="todayTaskList">
+          <!-- Tareas generadas por JS -->
+        </div>
+      </div>
+
+      <div class="view__section">
+        <div class="section__header">
+          <h3>Compañeros activos ahora</h3>
+          <button class="btn-link" data-go-view="group">Ver grupo completo →</button>
+        </div>
+        <div class="peer-strip" id="peerStrip">
+          <!-- Peers generados por JS -->
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================== -->
+    <!-- VISTA: CALENDARIO -->
+    <!-- =================================================== -->
+    <section class="view view--calendar" data-view="calendar">
+      <div class="calendar__toolbar">
+        <div class="calendar__nav">
+          <button class="btn-icon" id="calPrev" aria-label="Semana anterior">
+            <i data-lucide="chevron-left"></i>
+          </button>
+          <h3 id="calendarLabel">—</h3>
+          <button class="btn-icon" id="calNext" aria-label="Semana siguiente">
+            <i data-lucide="chevron-right"></i>
+          </button>
+        </div>
+        <div class="calendar__view-switch">
+          <button class="switch-btn active" data-cal-mode="week">Semana</button>
+          <button class="switch-btn" data-cal-mode="month">Mes</button>
+        </div>
+      </div>
+
+      <div class="calendar__container" id="calendarContainer">
+        <!-- Calendario generado por JS -->
+      </div>
+    </section>
+
+    <!-- =================================================== -->
+    <!-- VISTA: GRUPO -->
+    <!-- =================================================== -->
+    <section class="view view--group" data-view="group">
+      <div class="group__header">
+        <div>
+          <h2>TUPA · 2° año</h2>
+          <p class="group__caption">6 estudiantes · sincronización en tiempo real</p>
+        </div>
+        <div class="group__stat">
+          <span class="stat-number" id="groupTotalDone">0</span>
+          <span class="stat-label">tareas completadas esta semana</span>
+        </div>
+      </div>
+
+      <div class="group__members" id="groupMembers">
+        <!-- Miembros generados por JS -->
+      </div>
+    </section>
+
+    <!-- =================================================== -->
+    <!-- VISTA: RESUMEN SEMANAL -->
+    <!-- =================================================== -->
+    <section class="view view--weekly" data-view="weekly">
+      <div class="weekly__hero">
+        <h2>Tu semana en SyncStudy</h2>
+        <p class="weekly__caption">Lo que lograste, no lo que faltó.</p>
+      </div>
+
+      <div class="weekly__cards">
+        <div class="weekly-card weekly-card--primary">
+          <span class="card__label">Tareas completadas</span>
+          <span class="card__number" id="weeklyDoneCount">0</span>
+          <span class="card__delta" id="weeklyDoneDelta">de tu propio plan</span>
+        </div>
+        <div class="weekly-card">
+          <span class="card__label">Días con avance</span>
+          <span class="card__number" id="weeklyActiveDays">0</span>
+          <span class="card__delta">de 7</span>
+        </div>
+        <div class="weekly-card">
+          <span class="card__label">Tu grupo logró</span>
+          <span class="card__number" id="weeklyGroupDone">0</span>
+          <span class="card__delta">tareas en total</span>
+        </div>
+      </div>
+
+      <div class="weekly__message" id="weeklyMessage">
+        Sigue así. Esta semana ya empezó a contar.
+      </div>
+    </section>
+  </main>
+
+  <!-- =================================================== -->
+  <!-- MODAL: NUEVA / EDITAR TAREA -->
+  <!-- =================================================== -->
+  <div class="modal" id="taskModal" aria-hidden="true">
+    <div class="modal__backdrop" data-close-modal></div>
+    <div class="modal__panel" role="dialog" aria-labelledby="modalTitle">
+      <div class="modal__header">
+        <h3 id="modalTitle">Nueva tarea</h3>
+        <button class="btn-icon" data-close-modal aria-label="Cerrar">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+      <form class="modal__form" id="taskForm">
+        <input type="hidden" id="taskId" />
+
+        <label class="field">
+          <span class="field__label">Título *</span>
+          <input
+            type="text"
+            id="taskTitle"
+            required
+            placeholder="Ej: Estudiar para prueba de Suelos"
+            maxlength="80"
+          />
+        </label>
+
+        <label class="field">
+          <span class="field__label">Descripción</span>
+          <textarea
+            id="taskDescription"
+            rows="2"
+            placeholder="Opcional: detalles, capítulos, lo que sea útil"
+          ></textarea>
+        </label>
+
+        <div class="field-row">
+          <label class="field">
+            <span class="field__label">Fecha *</span>
+            <input type="date" id="taskDate" required />
+          </label>
+
+          <label class="field">
+            <span class="field__label">Asignatura</span>
+            <select id="taskSubject">
+              <option value="General">General</option>
+              <option value="Suelos">Suelos</option>
+              <option value="Cultivos">Cultivos</option>
+              <option value="Sustentabilidad">Sustentabilidad</option>
+              <option value="Inglés">Inglés</option>
+              <option value="Estadística">Estadística</option>
+            </select>
+          </label>
+        </div>
+
+        <label class="field">
+          <span class="field__label">Prioridad</span>
+          <div class="priority-options">
+            <label class="priority-option">
+              <input type="radio" name="priority" value="3" />
+              <span class="priority-pill priority-pill--high">Alta</span>
+            </label>
+            <label class="priority-option">
+              <input type="radio" name="priority" value="2" checked />
+              <span class="priority-pill priority-pill--med">Media</span>
+            </label>
+            <label class="priority-option">
+              <input type="radio" name="priority" value="1" />
+              <span class="priority-pill priority-pill--low">Baja</span>
+            </label>
+          </div>
+        </label>
+
+        <div class="modal__footer">
+          <button type="button" class="btn btn--ghost" id="btnDeleteTask" hidden>
+            <i data-lucide="trash-2"></i>
+            <span>Eliminar</span>
+          </button>
+          <div class="modal__footer-right">
+            <button type="button" class="btn btn--secondary" data-close-modal>
+              Cancelar
+            </button>
+            <button type="submit" class="btn btn--primary">
+              <i data-lucide="check"></i>
+              <span>Guardar</span>
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- =================================================== -->
+  <!-- TOAST DE NOTIFICACIÓN -->
+  <!-- =================================================== -->
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <!-- =================================================== -->
+  <!-- SCRIPTS -->
+  <!-- =================================================== -->
+  <script src="js/data.js"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/utils.js"></script>
+  <script src="js/views.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
