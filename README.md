@@ -1,196 +1,274 @@
-# SyncStudy — MVP Web
+# SyncStudy
 
-> *"Estudia en sincronía con tu grupo."*
->
-> Calendario colaborativo para la organización académica de estudiantes desde los 15 años en adelante.
+Calendario colaborativo para la organización académica de estudiantes desde los 15 años en adelante.
 
 ---
 
-## Sobre este MVP
+## Descripción
 
-Esta es la **Fase 1** del prototipo: una **web app funcional** que implementa los 8 Must Have del MoSCoW usando HTML, CSS y JavaScript vanilla con persistencia local (`localStorage`).
+SyncStudy es una aplicación web que permite a estudiantes de un mismo curso compartir, visualizar y dar seguimiento mutuo a sus tareas y plazos académicos. A diferencia de un calendario tradicional, centrado en el usuario individual, SyncStudy convierte la organización en una experiencia social: cada estudiante ve no solo sus propias tareas, sino también el avance de sus compañeros, transformando la planificación solitaria en una práctica grupal sostenida en el tiempo.
 
-En siguientes fases:
-- **Fase 2:** Migración a Firebase para sincronización real.
-- **Fase 3:** App móvil Flutter conectada al mismo backend.
+Este repositorio contiene la primera fase del prototipo: una web app funcional con persistencia local, desarrollada como entregable de la asignatura Tecnología y Prototipado.
 
 ---
 
-##  Funcionalidades implementadas (Must Have)
+## Contexto académico
 
-- **F1.** Crear, editar y eliminar tareas con fecha y prioridad.
-- **F2.** Vista calendario semanal y mensual.
-- **F3.** Vista "Hoy" simplificada con 3 tareas prioritarias.
-- **F5.** Marcar tareas como completadas.
-- **F6.** Visibilidad cruzada de tareas de compañeros.
-- **F7.** Grupo de curso pre-cargado (TUPA · 2° año con 5 compañeros).
-- **F8.** Indicador visual de avance del grupo (barra y porcentajes).
-- **F10.** Recordatorios visuales por fecha.
+| Campo | Detalle |
+| :--- | :--- |
+| Institución | Universidad Católica de Temuco |
+| Carrera | Técnico Universitario en Producción Agropecuaria Sostenible |
+| Asignatura | Tecnología y Prototipado |
+| Docente | Walter Noack Pérez |
+| Evaluación | N°2 — Etapa de Prototipado del Design Thinking |
+| Año | 2026 |
 
-Extras incluidos:
-- **Simulación de actividad del grupo en vivo:** cada ~25 segundos, un compañero completa una tarea automáticamente. Esto genera la sensación de "uso real" durante la demo.
-- **Resumen semanal visual:** una vista extra (Should Have del MoSCoW) que refuerza logros.
+### Equipo
+
+- Matías Mcintire — Líder técnico y desarrollo móvil
+- Leonardo Aguilera — Desarrollo web y diseño visual
+- Alfredo San Juan — Backend, modelo de datos y testeo con usuarios
 
 ---
 
-##  Cómo usarlo localmente
+## Fundamentación del prototipo
 
-### Opción 1: Abrir directamente en el navegador
-1. Descomprimir el zip.
-2. Hacer doble clic en `index.html`.
-3. Listo. Funciona sin servidor.
+El prototipo es la materialización de la idea ganadora seleccionada en la matriz de selección de la Evaluación N°2. La solución responde al siguiente Problem Statement, definido en la etapa de definición:
 
-### Opción 2: Servidor local (recomendado)
-Si tu navegador bloquea algo por CORS, levanta un servidor simple:
+> "Estudiantes desde los 15 años en adelante en Chile, expuestos a entornos académicos exigentes y a una alta densidad de distracciones digitales, presentan dificultades para sostener en el tiempo hábitos consistentes de organización académica y cotidiana, lo que afecta su rendimiento, bienestar emocional y autoeficacia."
 
-```bash
-# Con Python 3
-cd syncstudy
-python3 -m http.server 8000
+El elemento diferencial de SyncStudy frente a cualquier calendario individual es la visibilidad cruzada entre pares: la organización deja de ser un acto solitario y se convierte en una práctica compartida, abordando directamente el aislamiento detectado en la etapa de empatía como una de las causas estructurales del problema.
 
-# Luego abre http://localhost:8000 en tu navegador
+---
+
+## Alcance de esta fase
+
+Esta versión corresponde a la Fase 1 del prototipo: una web app funcional construida con tecnologías web nativas y persistencia local. Implementa las funcionalidades clasificadas como Must Have en el método MoSCoW aplicado durante la planificación del prototipo.
+
+### Fases posteriores planificadas
+
+| Fase | Alcance | Estado |
+| :---: | :--- | :--- |
+| 1 | Web app funcional con persistencia local | Implementada |
+| 2 | Migración a Firebase con sincronización en tiempo real | Planificada |
+| 3 | Aplicación móvil Flutter conectada al mismo backend | Planificada |
+
+### Funcionalidades implementadas
+
+Las funcionalidades Must Have, derivadas del análisis MoSCoW, están todas operativas en esta fase:
+
+| Código | Funcionalidad | Justificación |
+| :--- | :--- | :--- |
+| F1 | Crear, editar y eliminar tareas con fecha, prioridad y asignatura | Funcionalidad base de cualquier sistema de organización. |
+| F2 | Vista calendario semanal y mensual | Permite la distribución temporal de las tareas para anticipar plazos. |
+| F3 | Vista "Hoy" simplificada con tres tareas prioritarias | Reduce la fricción cognitiva al mostrar solo lo esencial del día. |
+| F5 | Marcar tareas como completadas | Mecanismo de cierre psicológico y alimentación del indicador grupal. |
+| F6 | Visibilidad cruzada de tareas entre compañeros del grupo | Núcleo diferencial de la solución; materializa la dimensión social. |
+| F7 | Grupo de curso pre-cargado | Reduce a cero la fricción inicial de adopción. |
+| F8 | Indicador visual del avance grupal | Hace tangible el componente social y transforma la culpa individual en accountability colectiva. |
+| F10 | Recordatorios visuales por proximidad de fecha | Cumple la expectativa básica de un sistema de organización. |
+
+Adicionalmente se incluye una vista de resumen semanal, clasificada como Should Have en el MoSCoW, que refuerza positivamente al usuario al final de cada semana.
+
+---
+
+## Arquitectura técnica
+
+### Stack
+
+| Capa | Tecnología | Justificación |
+| :--- | :--- | :--- |
+| Estructura | HTML5 semántico | Compatibilidad universal, sin compilación. |
+| Estilo | CSS3 con variables nativas | Sistema de diseño mantenible sin frameworks. |
+| Lógica | JavaScript ES6 en adelante, sin frameworks | Sin dependencias, cero riesgos de incompatibilidad. |
+| Iconografía | Lucide Icons servido vía CDN | Iconos de línea coherentes con la estética del producto. |
+| Tipografía | Inter desde Google Fonts | Tipografía moderna y legible, ampliamente adoptada en productos digitales. |
+| Persistencia | localStorage del navegador | Suficiente para validación del concepto en esta fase. |
+
+### Principios de diseño técnico
+
+El proyecto sigue cuatro principios que guían cada decisión técnica:
+
+1. Capa de persistencia aislada. Todo acceso a localStorage pasa por el módulo `Storage`. Esto permite migrar a Firebase en la Fase 2 modificando un solo archivo.
+2. Renderizado simple sobre rendimiento. El estado se reconstruye desde el storage en cada cambio. Es una decisión deliberada que prioriza la mantenibilidad sobre la optimización prematura.
+3. Datos seed pre-cargados. El evaluador percibe la dimensión social del producto desde el primer acceso, sin requerir configuración manual.
+4. Sin frameworks ni dependencias en runtime. El proyecto se ejecuta directamente desde un navegador moderno.
+
+---
+
+## Estructura del repositorio
+
+```
+syncstudy/
+├── index.html               Punto de entrada de la aplicación
+├── README.md                Este documento
+├── .gitignore               Exclusiones de control de versiones
+│
+├── css/
+│   ├── reset.css            Normalización de estilos base
+│   ├── variables.css        Sistema de diseño (paleta, espaciado, tipografía)
+│   ├── layout.css           Estructura general (sidebar, topbar, grilla)
+│   ├── components.css       Componentes reutilizables
+│   └── views.css            Estilos específicos por vista
+│
+└── js/
+    ├── data.js              Datos iniciales (usuarios, grupo, tareas)
+    ├── storage.js           Capa de persistencia
+    ├── utils.js             Utilidades (fechas, DOM, notificaciones)
+    ├── views.js             Renderizado de vistas
+    └── app.js               Inicialización, navegación y orquestación
 ```
 
-```bash
-# Con Node.js (si tienes 'serve' instalado)
+### Modelo de datos
+
+El estado de la aplicación se compone de tres entidades principales:
+
+```
+users:    { id, name, initial, color, isMe }
+group:    { id, name, members[] }
+tasks:    { id, userId, title, description, dueDate,
+            subject, priority, completed, createdAt }
+```
+
+Esta estructura es deliberadamente análoga al esquema que se utilizará en Firestore durante la Fase 2, facilitando la migración futura.
+
+---
+
+## Ejecución local
+
+### Opción 1: Apertura directa
+
+Abrir el archivo `index.html` directamente en un navegador moderno (Chrome, Firefox, Safari o Edge en sus versiones recientes). No se requiere instalación de dependencias.
+
+### Opción 2: Servidor local
+
+Se recomienda servir el proyecto mediante un servidor local para evitar restricciones de seguridad del navegador relacionadas con el protocolo `file://`.
+
+Usando Python 3:
+
+```
+cd syncstudy
+python3 -m http.server 8000
+```
+
+Luego, abrir `http://localhost:8000` en el navegador.
+
+Usando Node.js:
+
+```
+cd syncstudy
 npx serve
 ```
 
-```bash
-# Con la extensión "Live Server" de VS Code
-# Click derecho sobre index.html → "Open with Live Server"
-```
+Usando Visual Studio Code: instalar la extensión Live Server y abrir `index.html` con la opción "Open with Live Server".
 
 ---
 
-## Cómo desplegarlo en GitHub Pages (link público)
+## Despliegue en GitHub Pages
 
-Para que el profesor pueda abrirlo con un link:
+Para generar un enlace público accesible desde cualquier dispositivo:
 
-### 1. Crear repositorio en GitHub
+### 1. Inicialización del repositorio
 
-```bash
+```
 cd syncstudy
 git init
 git add .
-git commit -m "MVP funcional de SyncStudy"
+git commit -m "Versión inicial del prototipo SyncStudy"
 ```
 
-Crea un repositorio nuevo en GitHub (por ejemplo: `syncstudy`), y luego:
+### 2. Conexión con GitHub
 
-```bash
-git remote add origin https://github.com/TU-USUARIO/syncstudy.git
+Crear un repositorio nuevo en GitHub y enlazar el repositorio local:
+
+```
+git remote add origin https://github.com/USUARIO/syncstudy.git
 git branch -M main
 git push -u origin main
 ```
 
-### 2. Activar GitHub Pages
+### 3. Activación de GitHub Pages
 
-1. Ve a tu repositorio en GitHub.
-2. Click en **Settings** (configuración) → **Pages** (en el menú lateral).
-3. En **Source**, selecciona **Branch: main** y carpeta **/ (root)**.
-4. Click en **Save**.
-5. Espera 1–2 minutos. GitHub te dará un link como:
-   ```
-   https://TU-USUARIO.github.io/syncstudy/
-   ```
+En la interfaz web de GitHub, dentro del repositorio creado, acceder a la sección Settings, seleccionar Pages en el menú lateral, y configurar el origen como rama `main` y carpeta raíz `/`. Tras unos minutos, GitHub publicará el sitio en una URL del formato:
 
-### 3. Compartir el link
+```
+https://USUARIO.github.io/syncstudy/
+```
 
-Ese link es el que muestras al profesor el día de la presentación. Solo lo abre y ya funciona.
+Esta URL constituye el enlace de demostración para presentaciones, validación con usuarios y entregas académicas.
 
 ---
 
-##  Estructura del proyecto
+## Datos pre-cargados
 
-```
-syncstudy/
-├── index.html              ← punto de entrada
-├── README.md               ← este archivo
-│
-├── css/
-│   ├── reset.css           ← normalización base
-│   ├── variables.css       ← sistema de diseño (colores, espaciado)
-│   ├── layout.css          ← sidebar, topbar, grilla principal
-│   ├── components.css      ← botones, modal, toast, tareas, peers
-│   └── views.css           ← estilos específicos de cada vista
-│
-└── js/
-    ├── data.js             ← datos iniciales (Fabián + 5 compañeros + tareas)
-    ├── storage.js          ← capa de persistencia (localStorage)
-    ├── utils.js            ← helpers de fechas, DOM, toast
-    ├── views.js            ← renderizado de cada vista
-    └── app.js              ← inicialización y orquestación
-```
-
-### Filosofía técnica
-
-- **Sin frameworks ni dependencias pesadas.** Solo HTML, CSS y JS vanilla.
-- **Capa de Storage aislada.** Toda la persistencia pasa por `Storage`. Cuando migremos a Firebase, solo cambiamos ese archivo.
-- **Render simple > performance.** El estado se reconstruye desde Storage en cada cambio. Suficiente para un MVP, más fácil de mantener.
-- **Datos seed pre-cargados.** El evaluador ve la dimensión social desde el primer momento, sin tener que configurar nada.
-
----
-
-##  Datos pre-cargados
+La aplicación inicializa con un conjunto de datos coherente con el User Persona Fabián Riquelme, definido en la bitácora del proyecto.
 
 ### Usuario principal
-- **Fabián Riquelme** (el User Persona definido en la bitácora).
 
-### Grupo de curso: TUPA · 2° año
-- Camila Soto
-- Joaquín Pérez
-- Valentina Cruz
-- Diego Morales
-- Sofía Henríquez
+Fabián Riquelme, estudiante de la carrera Técnico Universitario en Producción Agropecuaria Sostenible, segundo año. Encarna el patrón del estudiante intermitente identificado como User Persona en la etapa de empatía.
 
-### Tareas
-- ~20 tareas distribuidas entre los 6 estudiantes, con distintos estados (pendientes, completadas, próximas a vencer) y fechas relativas a "hoy" para que siempre se vean actuales.
+### Grupo de curso
 
----
+TUPA · 2° año, compuesto por seis estudiantes incluido Fabián. Los compañeros simulados son: Camila Soto, Joaquín Pérez, Valentina Cruz, Diego Morales y Sofía Henríquez.
 
-##  Cómo demostrarlo
+### Tareas iniciales
 
-1. **Abrir la app.** Mostrar la pantalla "Hoy" → "Estas son las 3 tareas prioritarias de Fabián."
-2. **Mostrar el indicador del grupo.** "Su grupo está al X% del día."
-3. **Marcar una tarea.** Mostrar cómo el indicador del grupo se actualiza.
-4. **Cambiar a vista "Mi grupo".** "Acá vemos qué está haciendo cada compañero."
-5. **Esperar ~25 segundos.** Un compañero completará una tarea automáticamente, generando un toast en vivo.
-6. **Ir al calendario.** Mostrar semanal y mensual.
-7. **Crear una tarea nueva.** Mostrar cómo aparece inmediatamente en todas las vistas.
+Aproximadamente veinte tareas distribuidas entre los seis estudiantes, con distintos estados (pendientes, completadas, próximas a vencer) y fechas relativas a la fecha actual del sistema, de modo que el conjunto siempre se mantenga vigente.
 
 ---
 
-##  Resetear datos
+## Comportamiento dinámico del grupo
 
-Si quieres reiniciar los datos a su estado inicial (útil entre demos):
+Para reforzar la dimensión social durante las sesiones de demostración y validación, la aplicación incluye un mecanismo de simulación de actividad: cada veinticinco segundos, un compañero del grupo completa una tarea pendiente de forma automática, generando una notificación visual.
 
-1. Abrir la consola del navegador (F12).
-2. Ejecutar: `Storage.reset(); Views.renderAll();`
-3. Listo.
-
-O, más simple:
-1. Abrir DevTools → Application → Local Storage.
-2. Eliminar la clave `syncstudy.v1`.
-3. Recargar la página.
+Este comportamiento no afecta las tareas del usuario actual y puede observarse durante el uso normal de la aplicación. Su propósito es transmitir la sensación de un grupo activo y permitir que el evaluador experimente la naturaleza colaborativa del producto sin requerir múltiples usuarios reales conectados simultáneamente.
 
 ---
 
-##  Próximos pasos
+## Reinicio del estado de la aplicación
 
-- [ ] Fase 2: integrar Firebase Auth + Firestore.
-- [ ] Fase 3: app móvil Flutter conectada al mismo backend.
-- [ ] Implementar Should Have prioritarios (notificaciones cruzadas, categorías).
-- [ ] Testeo con 5 usuarios coherentes con el User Persona Fabián.
-- [ ] PWA (manifiesto + service worker) para "instalación" en celular.
+Durante el desarrollo o la preparación de demostraciones, puede requerirse restablecer la aplicación a su estado inicial. Existen dos métodos.
+
+### Método 1: Consola del navegador
+
+Abrir las herramientas de desarrollo del navegador (tecla F12) y ejecutar en la consola:
+
+```
+Storage.reset();
+Views.renderAll();
+```
+
+### Método 2: Borrado manual del almacenamiento
+
+En las herramientas de desarrollo, acceder a la pestaña Application (Chrome y Edge) o Storage (Firefox), localizar la sección Local Storage, eliminar la clave `syncstudy.v1` y recargar la página.
 
 ---
 
-##  Equipo
+## Compatibilidad
 
-- **Matías Mcintire** — Líder técnico / App móvil
-- **Leonardo Aguilera** — Frontend web / Diseño visual
-- **Alfredo San Juan** — Backend / Datos / Testeo
+La aplicación ha sido diseñada y probada en las versiones recientes de los siguientes navegadores:
 
-**Asignatura:** Tecnología y Prototipado · **Docente:** Walter Noack Pérez
-**Universidad Católica de Temuco** · 2026
+- Google Chrome 120 o superior
+- Mozilla Firefox 121 o superior
+- Microsoft Edge 120 o superior
+- Apple Safari 17 o superior
+
+El diseño es responsivo y se adapta a resoluciones desde 360 píxeles de ancho hasta pantallas de alta resolución de escritorio.
+
+---
+
+## Próximos pasos
+
+El presente prototipo constituye la primera de tres fases planificadas para el ciclo completo de prototipado. Las tareas pendientes son:
+
+1. Implementación de las funcionalidades clasificadas como Should Have en el MoSCoW.
+2. Integración con Firebase Authentication y Firestore para sincronización en tiempo real entre dispositivos.
+3. Desarrollo de la aplicación móvil en Flutter para Android e iOS, conectada al mismo backend.
+4. Ejecución de sesiones de testeo con cinco usuarios coherentes con el perfil de User Persona definido en la bitácora.
+5. Documentación de hallazgos del testeo y ajustes iterativos al prototipo.
+
+---
+
+## Licencia
+
+Este proyecto se desarrolla con fines exclusivamente académicos como parte de la evaluación del curso Tecnología y Prototipado en la Universidad Católica de Temuco. Su distribución y uso fuera de este contexto requiere autorización previa del equipo desarrollador.
