@@ -17,7 +17,7 @@ Este repositorio contiene la primera fase del prototipo: una web app funcional c
 | Campo | Detalle |
 | :--- | :--- |
 | Institución | Universidad Católica de Temuco |
-| Carrera | Técnico Universitario en Producción Agropecuaria Sostenible |
+| Carrera | Técnico Universitario en Informática |
 | Asignatura | Tecnología y Prototipado |
 | Docente | Walter Noack Pérez |
 | Evaluación | N°2 — Etapa de Prototipado del Design Thinking |
