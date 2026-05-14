@@ -1,0 +1,201 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 800" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Inter, sans-serif">
+  <!-- Fondo general -->
+  <rect width="1280" height="800" fill="#FFFFFF"/>
+
+  <!-- SIDEBAR -->
+  <rect x="0" y="0" width="240" height="800" fill="#F7F7F8"/>
+  <line x1="240" y1="0" x2="240" y2="800" stroke="#E5E7EB" stroke-width="1"/>
+
+  <!-- Brand -->
+  <g transform="translate(24, 28)">
+    <rect width="36" height="36" rx="8" fill="#2563EB"/>
+    <text x="18" y="24" fill="white" font-size="16" font-weight="700" text-anchor="middle">S</text>
+    <text x="48" y="16" fill="#1D1D1F" font-size="15" font-weight="600">SyncStudy</text>
+    <text x="48" y="32" fill="#9CA3AF" font-size="11">Estudia en sincronía</text>
+  </g>
+
+  <!-- Nav items -->
+  <g transform="translate(16, 96)">
+    <!-- Hoy -->
+    <rect width="208" height="36" rx="8" fill="transparent"/>
+    <circle cx="28" cy="18" r="9" fill="none" stroke="#4B5563" stroke-width="1.5"/>
+    <text x="48" y="22" fill="#4B5563" font-size="14" font-weight="500">Hoy</text>
+
+    <!-- Active: Calendario -->
+    <g transform="translate(0, 44)">
+      <rect width="208" height="36" rx="8" fill="white"/>
+      <rect x="20" y="9" width="16" height="16" rx="2" fill="none" stroke="#1D1D1F" stroke-width="1.5"/>
+      <text x="48" y="22" fill="#1D1D1F" font-size="14" font-weight="500">Calendario</text>
+    </g>
+
+    <g transform="translate(0, 88)">
+      <rect width="208" height="36" rx="8" fill="transparent"/>
+      <circle cx="24" cy="18" r="5" fill="none" stroke="#4B5563" stroke-width="1.5"/>
+      <circle cx="34" cy="18" r="5" fill="none" stroke="#4B5563" stroke-width="1.5"/>
+      <text x="48" y="22" fill="#4B5563" font-size="14" font-weight="500">Mi grupo</text>
+    </g>
+
+    <g transform="translate(0, 132)">
+      <rect width="208" height="36" rx="8" fill="transparent"/>
+      <rect x="20" y="16" width="3" height="10" rx="1" fill="#4B5563"/>
+      <rect x="25" y="12" width="3" height="14" rx="1" fill="#4B5563"/>
+      <rect x="30" y="8" width="3" height="18" rx="1" fill="#4B5563"/>
+      <text x="48" y="22" fill="#4B5563" font-size="14" font-weight="500">Resumen semanal</text>
+    </g>
+  </g>
+
+  <!-- Sidebar usuario -->
+  <g transform="translate(16, 720)">
+    <rect width="208" height="60" rx="8" fill="white"/>
+    <circle cx="34" cy="30" r="18" fill="#2563EB"/>
+    <text x="34" y="36" fill="white" font-size="14" font-weight="600" text-anchor="middle">F</text>
+    <text x="62" y="26" fill="#1D1D1F" font-size="13" font-weight="600">Fabián Riquelme</text>
+    <text x="62" y="42" fill="#9CA3AF" font-size="11">TUPA · 2° año</text>
+  </g>
+
+  <!-- TOPBAR -->
+  <line x1="240" y1="64" x2="1280" y2="64" stroke="#E5E7EB" stroke-width="1"/>
+  <text x="272" y="40" fill="#1D1D1F" font-size="20" font-weight="600">Calendario</text>
+
+  <!-- Botón Nueva tarea -->
+  <g transform="translate(1136, 16)">
+    <rect width="128" height="36" rx="8" fill="#2563EB"/>
+    <line x1="20" y1="18" x2="28" y2="18" stroke="white" stroke-width="2" stroke-linecap="round"/>
+    <line x1="24" y1="14" x2="24" y2="22" stroke="white" stroke-width="2" stroke-linecap="round"/>
+    <text x="42" y="22" fill="white" font-size="13" font-weight="500">Nueva tarea</text>
+  </g>
+
+  <!-- =========================================== -->
+  <!-- TOOLBAR DEL CALENDARIO -->
+  <!-- =========================================== -->
+  <g transform="translate(272, 96)">
+    <!-- Navegación de fechas -->
+    <g transform="translate(0, 0)">
+      <rect width="32" height="32" rx="8" fill="transparent"/>
+      <path d="M 20 10 L 14 16 L 20 22" fill="none" stroke="#4B5563" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+
+      <text x="48" y="22" fill="#1D1D1F" font-size="17" font-weight="600">11 May – 17 May</text>
+
+      <g transform="translate(220, 0)">
+        <rect width="32" height="32" rx="8" fill="transparent"/>
+        <path d="M 12 10 L 18 16 L 12 22" fill="none" stroke="#4B5563" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </g>
+    </g>
+
+    <!-- Switch semana/mes -->
+    <g transform="translate(740, 0)">
+      <rect width="120" height="32" rx="8" fill="#F7F7F8"/>
+      <rect x="4" y="4" width="56" height="24" rx="6" fill="white"/>
+      <text x="32" y="20" fill="#1D1D1F" font-size="13" font-weight="500" text-anchor="middle">Semana</text>
+      <text x="90" y="20" fill="#4B5563" font-size="13" font-weight="500" text-anchor="middle">Mes</text>
+    </g>
+  </g>
+
+  <!-- =========================================== -->
+  <!-- GRID SEMANAL -->
+  <!-- =========================================== -->
+  <g transform="translate(272, 152)">
+    <rect width="860" height="496" rx="12" fill="#F7F7F8" stroke="#E5E7EB" stroke-width="1"/>
+
+    <!-- Día 1 - Lunes -->
+    <g transform="translate(12, 12)">
+      <rect width="116" height="472" rx="8" fill="white"/>
+      <text x="58" y="20" fill="#9CA3AF" font-size="11" font-weight="600" text-anchor="middle" letter-spacing="0.5">LUN</text>
+      <text x="58" y="40" fill="#1D1D1F" font-size="17" font-weight="600" text-anchor="middle">11</text>
+      <line x1="12" y1="52" x2="104" y2="52" stroke="#E5E7EB" stroke-width="1"/>
+
+      <!-- Tareas del día -->
+      <g transform="translate(8, 64)">
+        <rect width="100" height="22" rx="3" fill="#F7F7F8"/>
+        <rect x="0" y="0" width="3" height="22" rx="1" fill="#F59E0B"/>
+        <text x="8" y="14" fill="#1D1D1F" font-size="10">Ejercicios Estad...</text>
+      </g>
+    </g>
+
+    <!-- Día 2 - Martes (HOY) -->
+    <g transform="translate(132, 12)">
+      <rect width="116" height="472" rx="8" fill="#EFF6FF" stroke="#2563EB" stroke-width="1"/>
+      <text x="58" y="20" fill="#9CA3AF" font-size="11" font-weight="600" text-anchor="middle" letter-spacing="0.5">MAR</text>
+      <text x="58" y="40" fill="#2563EB" font-size="17" font-weight="600" text-anchor="middle">12</text>
+      <line x1="12" y1="52" x2="104" y2="52" stroke="#E5E7EB" stroke-width="1"/>
+
+      <!-- Tareas del día -->
+      <g transform="translate(8, 64)">
+        <rect width="100" height="22" rx="3" fill="#F7F7F8"/>
+        <rect x="0" y="0" width="3" height="22" rx="1" fill="#EF4444"/>
+        <text x="8" y="14" fill="#1D1D1F" font-size="10">Informe cultivos</text>
+      </g>
+      <g transform="translate(8, 92)">
+        <rect width="100" height="22" rx="3" fill="#F7F7F8"/>
+        <rect x="0" y="0" width="3" height="22" rx="1" fill="#F59E0B"/>
+        <text x="8" y="14" fill="#1D1D1F" font-size="10">Artículo Sust...</text>
+      </g>
+    </g>
+
+    <!-- Día 3 - Miércoles -->
+    <g transform="translate(252, 12)">
+      <rect width="116" height="472" rx="8" fill="white"/>
+      <text x="58" y="20" fill="#9CA3AF" font-size="11" font-weight="600" text-anchor="middle" letter-spacing="0.5">MIÉ</text>
+      <text x="58" y="40" fill="#1D1D1F" font-size="17" font-weight="600" text-anchor="middle">13</text>
+      <line x1="12" y1="52" x2="104" y2="52" stroke="#E5E7EB" stroke-width="1"/>
+      <g transform="translate(8, 64)">
+        <rect width="100" height="22" rx="3" fill="#F7F7F8"/>
+        <rect x="0" y="0" width="3" height="22" rx="1" fill="#EF4444"/>
+        <text x="8" y="14" fill="#1D1D1F" font-size="10">Prueba Suelos</text>
+      </g>
+    </g>
+
+    <!-- Día 4 - Jueves -->
+    <g transform="translate(372, 12)">
+      <rect width="116" height="472" rx="8" fill="white"/>
+      <text x="58" y="20" fill="#9CA3AF" font-size="11" font-weight="600" text-anchor="middle" letter-spacing="0.5">JUE</text>
+      <text x="58" y="40" fill="#1D1D1F" font-size="17" font-weight="600" text-anchor="middle">14</text>
+      <line x1="12" y1="52" x2="104" y2="52" stroke="#E5E7EB" stroke-width="1"/>
+      <g transform="translate(8, 64)">
+        <rect width="100" height="22" rx="3" fill="#F7F7F8"/>
+        <rect x="0" y="0" width="3" height="22" rx="1" fill="#F59E0B"/>
+        <text x="8" y="14" fill="#1D1D1F" font-size="10">Estadística cap. 3</text>
+      </g>
+    </g>
+
+    <!-- Día 5 - Viernes -->
+    <g transform="translate(492, 12)">
+      <rect width="116" height="472" rx="8" fill="white"/>
+      <text x="58" y="20" fill="#9CA3AF" font-size="11" font-weight="600" text-anchor="middle" letter-spacing="0.5">VIE</text>
+      <text x="58" y="40" fill="#1D1D1F" font-size="17" font-weight="600" text-anchor="middle">15</text>
+      <line x1="12" y1="52" x2="104" y2="52" stroke="#E5E7EB" stroke-width="1"/>
+    </g>
+
+    <!-- Día 6 - Sábado -->
+    <g transform="translate(612, 12)">
+      <rect width="116" height="472" rx="8" fill="white"/>
+      <text x="58" y="20" fill="#9CA3AF" font-size="11" font-weight="600" text-anchor="middle" letter-spacing="0.5">SÁB</text>
+      <text x="58" y="40" fill="#1D1D1F" font-size="17" font-weight="600" text-anchor="middle">16</text>
+      <line x1="12" y1="52" x2="104" y2="52" stroke="#E5E7EB" stroke-width="1"/>
+    </g>
+
+    <!-- Día 7 - Domingo -->
+    <g transform="translate(732, 12)">
+      <rect width="116" height="472" rx="8" fill="white"/>
+      <text x="58" y="20" fill="#9CA3AF" font-size="11" font-weight="600" text-anchor="middle" letter-spacing="0.5">DOM</text>
+      <text x="58" y="40" fill="#1D1D1F" font-size="17" font-weight="600" text-anchor="middle">17</text>
+      <line x1="12" y1="52" x2="104" y2="52" stroke="#E5E7EB" stroke-width="1"/>
+    </g>
+  </g>
+
+  <!-- Leyenda de prioridades -->
+  <g transform="translate(272, 680)" fill="#9CA3AF" font-size="11">
+    <text x="0" y="0">Leyenda:</text>
+    <rect x="60" y="-8" width="3" height="12" rx="1" fill="#EF4444"/>
+    <text x="68" y="0">Alta</text>
+    <rect x="100" y="-8" width="3" height="12" rx="1" fill="#F59E0B"/>
+    <text x="108" y="0">Media</text>
+    <rect x="148" y="-8" width="3" height="12" rx="1" fill="#10B981"/>
+    <text x="156" y="0">Baja</text>
+  </g>
+
+  <!-- ANOTACIÓN -->
+  <g transform="translate(1080, 760)" fill="#9CA3AF" font-size="10">
+    <text x="200" y="0" text-anchor="end">Wireframe · Pantalla 2/4 · Vista Calendario semanal (Desktop)</text>
+  </g>
+</svg>
