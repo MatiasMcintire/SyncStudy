@@ -79,6 +79,11 @@ function formatDateShort(timestamp) {
   return `${d.getDate()} ${MONTHS_SHORT[d.getMonth()]}`;
 }
 
+function formatLongDate(timestamp) {
+  const d = new Date(timestamp);
+  return `${WEEKDAYS_FULL[d.getDay()]} ${d.getDate()} de ${MONTHS[d.getMonth()]} de ${d.getFullYear()}`;
+}
+
 function formatDateForInput(timestamp) {
   const d = new Date(timestamp);
   const year = d.getFullYear();
@@ -116,6 +121,22 @@ function relativeDate(timestamp) {
   return formatDateShort(timestamp);
 }
 
+/** Tiempo relativo pasado, con granularidad minuto/hora/día.
+ *  Ej: "ahora", "hace 5 min", "hace 2 h", "ayer", "hace 3 días". */
+function relativeTime(timestamp) {
+  const seconds = Math.floor((Date.now() - timestamp) / 1000);
+  if (seconds < 30) return 'ahora';
+  if (seconds < 60) return `hace ${seconds} s`;
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `hace ${minutes} min`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `hace ${hours} h`;
+  const days = Math.floor(hours / 24);
+  if (days === 1) return 'ayer';
+  if (days < 7) return `hace ${days} días`;
+  return formatDateShort(timestamp);
+}
+
 // ===== PRIORIDADES =====
 
 function priorityLabel(p) {
@@ -124,6 +145,57 @@ function priorityLabel(p) {
 
 function priorityClass(p) {
   return p === 3 ? 'high' : p === 2 ? 'med' : 'low';
+}
+
+// ===== RECORDATORIOS / NOTIFICACIONES =====
+
+const REMINDER_LEAD_MS = 60 * 60 * 1000; // 60 minutos antes del due
+
+/** True si el navegador permite Notification API y el user ya dio permiso. */
+function browserNotifGranted() {
+  return typeof Notification !== 'undefined' && Notification.permission === 'granted';
+}
+
+/** Pide el permiso si todavía no se decidió. Devuelve una promesa con el
+ *  estado final ('granted' | 'denied' | 'default'). */
+async function requestBrowserNotifPermission() {
+  if (typeof Notification === 'undefined') return 'unsupported';
+  if (Notification.permission !== 'default') return Notification.permission;
+  try {
+    return await Notification.requestPermission();
+  } catch (_) {
+    return Notification.permission;
+  }
+}
+
+/** Notifica al usuario: toast in-app siempre; si la pestaña está en
+ *  background y hay permiso, también una Browser Notification. */
+function notifyUser(title, body, { icon = 'bell' } = {}) {
+  showToast(`${title}${body ? ' · ' + body : ''}`, icon);
+  if (browserNotifGranted() && document.visibilityState === 'hidden') {
+    try {
+      new Notification(title, { body, tag: 'syncstudy-reminder' });
+    } catch (err) {
+      console.warn('Notification falló:', err);
+    }
+  }
+}
+
+// ===== ESTADO DE TAREA (vencida / tardía) =====
+
+/** True si la tarea está pendiente y su fecha ya pasó (no es hoy). */
+function isOverdue(task) {
+  if (task.completed) return false;
+  return task.dueDate < startOfDay(new Date()).getTime();
+}
+
+/** True si la tarea está completada pero después de su fecha original.
+ *  Se basa en `completedAt`, que la app setea explícitamente al togglear.
+ *  Tolerancia: si se marcó cualquier hora del día del due, sigue siendo
+ *  "a tiempo" (usamos endOfDay para el corte). */
+function isCompletedLate(task) {
+  if (!task.completed || !task.completedAt) return false;
+  return task.completedAt > endOfDay(new Date(task.dueDate)).getTime();
 }
 
 // ===== DOM HELPERS =====
@@ -158,6 +230,52 @@ function refreshIcons() {
   // Lucide expone window.lucide.createIcons() después de cargar
   if (window.lucide && window.lucide.createIcons) {
     window.lucide.createIcons();
+  }
+}
+
+// ===== SONIDOS =====
+
+const SOUND_PREF_KEY = 'syncstudy_sound_enabled';
+
+function isSoundEnabled() {
+  // Default: encendido. Solo "false" persistido lo apaga.
+  return localStorage.getItem(SOUND_PREF_KEY) !== 'false';
+}
+
+function setSoundEnabled(enabled) {
+  localStorage.setItem(SOUND_PREF_KEY, String(!!enabled));
+}
+
+/** "Ding" corto y agradable cuando se completa una tarea. Generado vía
+ *  WebAudio para no depender de assets externos. */
+let _audioCtx = null;
+function playCompleteSound() {
+  if (!isSoundEnabled()) return;
+  try {
+    _audioCtx = _audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+    const ctx = _audioCtx;
+    // Algunos navegadores suspenden el contexto hasta que hay un gesto del user.
+    if (ctx.state === 'suspended') ctx.resume();
+
+    const t0 = ctx.currentTime;
+    // Dos osciladores apilados para un timbre más cálido (campanita).
+    const tones = [880, 1320];
+    tones.forEach((freq, i) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.value = freq;
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      const start = t0 + i * 0.05;
+      gain.gain.setValueAtTime(0.0001, start);
+      gain.gain.exponentialRampToValueAtTime(0.18, start + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, start + 0.35);
+      osc.start(start);
+      osc.stop(start + 0.4);
+    });
+  } catch (err) {
+    console.warn('No se pudo reproducir el sonido:', err);
   }
 }
 
@@ -201,7 +319,10 @@ function startPeerSimulation(onChange) {
     if (candidates.length === 0) return;
 
     const task = candidates[Math.floor(Math.random() * candidates.length)];
-    Storage.toggleTask(task.id);
+    // Toggle solo en el cache local: la simulación es un truco de demo y el
+    // usuario autenticado no es dueño de las tareas de sus compañeros,
+    // así que PB rechazaría el update (y no queremos persistir esto).
+    Storage._localToggleTask(task.id);
 
     const user = Storage.getUser(task.userId);
     showToast(`${user.name.split(' ')[0]} completó: ${task.title}`, 'check-circle-2');

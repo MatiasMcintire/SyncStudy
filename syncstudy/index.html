@@ -17,12 +17,27 @@
   <!-- Iconos Lucide -->
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
 
-  <!-- Hojas de estilo -->
-  <link rel="stylesheet" href="css/reset.css" />
-  <link rel="stylesheet" href="css/variables.css" />
-  <link rel="stylesheet" href="css/layout.css" />
-  <link rel="stylesheet" href="css/components.css" />
-  <link rel="stylesheet" href="css/views.css" />
+  <!-- Hojas de estilo (con cache-bust para evitar versiones obsoletas en dev) -->
+  <link rel="stylesheet" href="css/reset.css?v=20" />
+  <link rel="stylesheet" href="css/variables.css?v=20" />
+  <link rel="stylesheet" href="css/layout.css?v=20" />
+  <link rel="stylesheet" href="css/components.css?v=20" />
+  <link rel="stylesheet" href="css/views.css?v=20" />
+
+  <!-- CSS crítico del overlay de login: inline para que no quede a merced del cache. -->
+  <style>
+    .login-screen {
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      background: #f7f7f8;
+      z-index: 9999;
+    }
+    .login-screen.open { display: flex; }
+  </style>
 </head>
 <body>
   <!-- =================================================== -->
@@ -39,10 +54,23 @@
       </div>
     </div>
 
+    <!-- Selector de grupo -->
+    <div class="group-switcher" id="groupSwitcher">
+      <button type="button" class="group-switcher__trigger" id="groupSwitcherTrigger" aria-haspopup="listbox" aria-expanded="false">
+        <i data-lucide="users"></i>
+        <span class="group-switcher__label" id="groupSwitcherLabel">—</span>
+        <i data-lucide="chevron-down" class="group-switcher__chevron"></i>
+      </button>
+      <div class="group-switcher__menu" id="groupSwitcherList" role="listbox" hidden>
+        <!-- Opciones generadas por JS -->
+      </div>
+    </div>
+
     <nav class="sidebar__nav">
       <button class="nav-item active" data-view="today">
         <i data-lucide="sun"></i>
         <span>Hoy</span>
+        <span class="nav-item__badge" id="navTodayBadge" hidden></span>
       </button>
       <button class="nav-item" data-view="calendar">
         <i data-lucide="calendar"></i>
@@ -59,11 +87,16 @@
     </nav>
 
     <div class="sidebar__user">
-      <div class="user-avatar" id="sidebarAvatar">F</div>
-      <div class="user-info">
-        <span class="user-name" id="sidebarUserName">Fabián Riquelme</span>
-        <span class="user-group" id="sidebarUserGroup">TUPA · 2° año</span>
+      <div class="sidebar__user-trigger" id="btnProfile" role="button" tabindex="0" aria-label="Editar perfil" title="Editar perfil">
+        <div class="user-avatar" id="sidebarAvatar">F</div>
+        <div class="user-info">
+          <span class="user-name" id="sidebarUserName">Fabián Riquelme</span>
+          <span class="user-group" id="sidebarUserGroup">TUPA · 2° año</span>
+        </div>
       </div>
+      <button class="btn-icon user-logout" id="btnLogout" aria-label="Cerrar sesión" title="Cerrar sesión">
+        <i data-lucide="log-out"></i>
+      </button>
     </div>
   </aside>
 
@@ -111,23 +144,25 @@
         </div>
       </div>
 
-      <div class="view__section">
-        <div class="section__header">
-          <h3>Tus 3 tareas prioritarias</h3>
-          <span class="section__hint">Foco mínimo · máximo impacto</span>
+      <div class="two-cols">
+        <div class="view__section two-cols__main">
+          <div class="section__header">
+            <h3>Tus 3 tareas prioritarias</h3>
+            <span class="section__hint">Foco mínimo · máximo impacto</span>
+          </div>
+          <div class="task-list" id="todayTaskList">
+            <!-- Tareas generadas por JS -->
+          </div>
         </div>
-        <div class="task-list" id="todayTaskList">
-          <!-- Tareas generadas por JS -->
-        </div>
-      </div>
 
-      <div class="view__section">
-        <div class="section__header">
-          <h3>Compañeros activos ahora</h3>
-          <button class="btn-link" data-go-view="group">Ver grupo completo →</button>
-        </div>
-        <div class="peer-strip" id="peerStrip">
-          <!-- Peers generados por JS -->
+        <div class="view__section two-cols__side">
+          <div class="section__header">
+            <h3>Compañeros activos ahora</h3>
+            <button class="btn-link" data-go-view="group">Ver grupo completo →</button>
+          </div>
+          <div class="peer-strip" id="peerStrip">
+            <!-- Peers generados por JS -->
+          </div>
         </div>
       </div>
     </section>
@@ -163,13 +198,27 @@
     <section class="view view--group" data-view="group">
       <div class="group__header">
         <div>
-          <h2>TUPA · 2° año</h2>
-          <p class="group__caption">6 estudiantes · sincronización en tiempo real</p>
+          <h2 id="groupHeaderName">—</h2>
+          <p class="group__caption" id="groupHeaderCaption">—</p>
         </div>
         <div class="group__stat">
           <span class="stat-number" id="groupTotalDone">0</span>
           <span class="stat-label">tareas completadas esta semana</span>
         </div>
+      </div>
+      <!-- Tarjeta del código de invitación: visible sólo cuando hay grupo activo -->
+      <div class="group__invite" id="groupInviteCard" hidden>
+        <div class="group__invite-info">
+          <i data-lucide="link"></i>
+          <div>
+            <div class="group__invite-label">Código de invitación</div>
+            <div class="group__invite-caption">Compártelo para que entren a este grupo.</div>
+          </div>
+        </div>
+        <button class="invite-code" id="groupInviteCode" type="button" title="Copiar código">
+          <span id="groupInviteCodeText">——————</span>
+          <i data-lucide="copy"></i>
+        </button>
       </div>
 
       <div class="group__members" id="groupMembers">
@@ -191,6 +240,16 @@
           <span class="card__label">Tareas completadas</span>
           <span class="card__number" id="weeklyDoneCount">0</span>
           <span class="card__delta" id="weeklyDoneDelta">de tu propio plan</span>
+          <div class="card__breakdown" id="weeklyOnTimeBreakdown">
+            <span class="card__breakdown-item">
+              <span class="card__breakdown-dot card__breakdown-dot--ok"></span>
+              <span><b id="weeklyOnTime">0</b> a tiempo</span>
+            </span>
+            <span class="card__breakdown-item">
+              <span class="card__breakdown-dot card__breakdown-dot--late"></span>
+              <span><b id="weeklyLate">0</b> tarde</span>
+            </span>
+          </div>
         </div>
         <div class="weekly-card">
           <span class="card__label">Días con avance</span>
@@ -207,6 +266,24 @@
       <div class="weekly__message" id="weeklyMessage">
         Sigue así. Esta semana ya empezó a contar.
       </div>
+
+      <div class="two-cols">
+        <div class="weekly__section two-cols__main" id="weeklyRankingSection" hidden>
+          <div class="weekly__section-header">
+            <h3>Ranking del grupo · esta semana</h3>
+            <span class="weekly__section-hint">Por tareas a tiempo</span>
+          </div>
+          <ol class="weekly__ranking" id="weeklyRanking"></ol>
+        </div>
+
+        <div class="weekly__section two-cols__side" id="weeklyLateSection" hidden>
+          <div class="weekly__section-header">
+            <h3>Completadas fuera de plazo</h3>
+            <span class="weekly__section-hint">Esta semana</span>
+          </div>
+          <ul class="weekly__late-list" id="weeklyLateList"></ul>
+        </div>
+      </div>
     </section>
   </main>
 
@@ -222,8 +299,24 @@
           <i data-lucide="x"></i>
         </button>
       </div>
+      <!-- Vista de solo-lectura: visible cuando la tarea es de un compañero. -->
+      <section class="task-readonly" id="taskReadonlyView" hidden>
+        <h2 class="task-readonly__title" id="readonlyTitle">—</h2>
+        <div class="task-readonly__meta" id="readonlyMeta"></div>
+        <p class="task-readonly__desc" id="readonlyDesc" hidden></p>
+      </section>
+
       <form class="modal__form" id="taskForm">
         <input type="hidden" id="taskId" />
+
+        <!-- Toggle de completada (solo visible al editar) -->
+        <label class="task-complete-toggle" id="taskCompleteToggle" hidden>
+          <input type="checkbox" id="taskCompleted" />
+          <span class="task-complete-toggle__text">
+            <strong>Marcar como completada</strong>
+            <span class="task-complete-toggle__hint" id="taskCompleteHint">Cierra el ciclo de la tarea.</span>
+          </span>
+        </label>
 
         <label class="field">
           <span class="field__label">Título *</span>
@@ -291,6 +384,181 @@
             <button type="button" class="btn btn--secondary" data-close-modal>
               Cancelar
             </button>
+            <button type="submit" class="btn btn--primary" id="btnSaveTask">
+              <i data-lucide="check"></i>
+              <span>Guardar</span>
+            </button>
+          </div>
+        </div>
+      </form>
+
+      <!-- Comentarios: visibles solo al editar una tarea existente -->
+      <section class="task-comments" id="taskComments" hidden>
+        <h4 class="task-comments__title">
+          <i data-lucide="message-square"></i>
+          <span>Comentarios</span>
+        </h4>
+        <div class="task-comments__list" id="taskCommentsList"></div>
+        <form class="task-comments__composer" id="taskCommentForm">
+          <textarea
+            id="taskCommentInput"
+            placeholder="Escribe un comentario para tu grupo…"
+            rows="2"
+            maxlength="2000"
+          ></textarea>
+          <button type="submit" class="btn btn--primary">
+            <i data-lucide="send"></i>
+            <span>Comentar</span>
+          </button>
+        </form>
+      </section>
+    </div>
+  </div>
+
+  <!-- =================================================== -->
+  <!-- MODAL: NUEVO GRUPO / UNIRSE -->
+  <!-- =================================================== -->
+  <div class="modal" id="groupModal" aria-hidden="true">
+    <div class="modal__backdrop" data-close-modal></div>
+    <div class="modal__panel" role="dialog" aria-labelledby="groupModalTitle">
+      <div class="modal__header">
+        <h3 id="groupModalTitle">Grupos</h3>
+        <button class="btn-icon" data-close-modal aria-label="Cerrar" id="groupModalClose">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+      <p class="group-modal__intro" id="groupModalIntro" hidden>
+        Aún no perteneces a ningún grupo. Crea uno o únete con un código.
+      </p>
+      <div class="group-modal__tabs" role="tablist">
+        <button type="button" class="group-modal__tab active" data-tab="join" role="tab">Unirse con código</button>
+        <button type="button" class="group-modal__tab" data-tab="create" role="tab">Crear grupo</button>
+      </div>
+
+      <form class="modal__form group-modal__form" id="joinGroupForm" data-tab-panel="join">
+        <label class="field">
+          <span class="field__label">Código de invitación</span>
+          <input
+            type="text"
+            id="joinCodeInput"
+            required
+            placeholder="Ej: AB7K2X"
+            maxlength="6"
+            autocomplete="off"
+            inputmode="latin"
+            style="text-transform: uppercase; letter-spacing: 0.1em; font-family: ui-monospace, monospace;"
+          />
+        </label>
+        <p class="login-error" id="joinError" hidden></p>
+        <div class="modal__footer">
+          <div class="modal__footer-right">
+            <button type="button" class="btn btn--secondary" data-close-modal>
+              Cancelar
+            </button>
+            <button type="submit" class="btn btn--primary">
+              <i data-lucide="log-in"></i>
+              <span>Unirme</span>
+            </button>
+          </div>
+        </div>
+      </form>
+
+      <form class="modal__form group-modal__form" id="createGroupForm" data-tab-panel="create" hidden>
+        <label class="field">
+          <span class="field__label">Nombre del grupo</span>
+          <input
+            type="text"
+            id="createGroupName"
+            required
+            placeholder="Ej: TUPA · 2° año"
+            maxlength="60"
+          />
+        </label>
+        <p class="login-error" id="createError" hidden></p>
+        <div class="modal__footer">
+          <div class="modal__footer-right">
+            <button type="button" class="btn btn--secondary" data-close-modal>
+              Cancelar
+            </button>
+            <button type="submit" class="btn btn--primary">
+              <i data-lucide="plus"></i>
+              <span>Crear</span>
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- =================================================== -->
+  <!-- MODAL: PERFIL DE USUARIO -->
+  <!-- =================================================== -->
+  <div class="modal" id="profileModal" aria-hidden="true">
+    <div class="modal__backdrop" data-close-modal></div>
+    <div class="modal__panel" role="dialog" aria-labelledby="profileTitle">
+      <div class="modal__header">
+        <h3 id="profileTitle">Tu perfil</h3>
+        <button class="btn-icon" data-close-modal aria-label="Cerrar">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+      <form class="modal__form" id="profileForm">
+        <div class="profile-preview">
+          <div class="user-avatar profile-preview__avatar" id="profilePreviewAvatar">F</div>
+          <div class="profile-preview__email" id="profileEmail">—</div>
+        </div>
+
+        <label class="field">
+          <span class="field__label">Nombre</span>
+          <input
+            type="text"
+            id="profileName"
+            required
+            placeholder="Tu nombre y apellido"
+            maxlength="60"
+          />
+        </label>
+
+        <label class="field">
+          <span class="field__label">Inicial (1 carácter)</span>
+          <input
+            type="text"
+            id="profileInitial"
+            maxlength="2"
+            placeholder="F"
+          />
+        </label>
+
+        <label class="field profile-toggle">
+          <input type="checkbox" id="profileSoundToggle" />
+          <span class="profile-toggle__text">
+            <strong>Sonido al completar tarea</strong>
+            <span class="profile-toggle__hint">Un pequeño "ding" cuando marcas una tarea como hecha.</span>
+          </span>
+        </label>
+
+        <button type="button" class="btn btn--secondary btn--full" id="profileNotifBtn">
+          <i data-lucide="bell"></i>
+          <span id="profileNotifLabel">Activar notificaciones del navegador</span>
+        </button>
+
+        <div class="field">
+          <span class="field__label">Color</span>
+          <div class="color-swatches" id="profileColorSwatches">
+            <button type="button" class="color-swatch" data-color="#2563eb" style="background:#2563eb" aria-label="Azul"></button>
+            <button type="button" class="color-swatch" data-color="#ec4899" style="background:#ec4899" aria-label="Rosa"></button>
+            <button type="button" class="color-swatch" data-color="#f59e0b" style="background:#f59e0b" aria-label="Naranja"></button>
+            <button type="button" class="color-swatch" data-color="#10b981" style="background:#10b981" aria-label="Verde"></button>
+            <button type="button" class="color-swatch" data-color="#8b5cf6" style="background:#8b5cf6" aria-label="Violeta"></button>
+            <button type="button" class="color-swatch" data-color="#06b6d4" style="background:#06b6d4" aria-label="Turquesa"></button>
+          </div>
+        </div>
+
+        <div class="modal__footer">
+          <div class="modal__footer-right">
+            <button type="button" class="btn btn--secondary" data-close-modal>
+              Cancelar
+            </button>
             <button type="submit" class="btn btn--primary">
               <i data-lucide="check"></i>
               <span>Guardar</span>
@@ -302,17 +570,58 @@
   </div>
 
   <!-- =================================================== -->
+  <!-- TOOLTIP FLOTANTE (preview de día en vista Mes) -->
+  <!-- =================================================== -->
+  <div class="cal-tooltip" id="calendarTooltip" role="tooltip" hidden></div>
+
+  <!-- =================================================== -->
   <!-- TOAST DE NOTIFICACIÓN -->
   <!-- =================================================== -->
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
   <!-- =================================================== -->
+  <!-- LOGIN SCREEN (al final del body para no interferir con el grid) -->
+  <!-- =================================================== -->
+  <div class="login-screen open" id="loginScreen" aria-hidden="false">
+    <div class="login-card" role="dialog" aria-labelledby="loginTitle">
+      <div class="login-brand">
+        <div class="brand__logo">
+          <i data-lucide="calendar-sync"></i>
+        </div>
+        <span>SyncStudy</span>
+      </div>
+      <h1 id="loginTitle">Inicia sesión</h1>
+      <p class="login-subtitle">Conéctate para ver el calendario de tu grupo.</p>
+      <form class="login-form" id="loginForm">
+        <label class="field">
+          <span class="field__label">Correo</span>
+          <input type="email" id="loginEmail" required autocomplete="username" />
+        </label>
+        <label class="field">
+          <span class="field__label">Contraseña</span>
+          <input type="password" id="loginPassword" required autocomplete="current-password" />
+        </label>
+        <p class="login-error" id="loginError" hidden></p>
+        <button type="submit" class="btn btn--primary btn--full" id="loginSubmit">
+          <i data-lucide="log-in"></i>
+          <span>Entrar</span>
+        </button>
+      </form>
+      <p class="login-hint">
+        Demo: <code>fabian@syncstudy.local</code> · <code>syncstudy123</code>
+      </p>
+    </div>
+  </div>
+
+  <!-- =================================================== -->
   <!-- SCRIPTS -->
   <!-- =================================================== -->
-  <script src="js/data.js"></script>
-  <script src="js/storage.js"></script>
-  <script src="js/utils.js"></script>
-  <script src="js/views.js"></script>
-  <script src="js/app.js"></script>
+  <!-- SDK de PocketBase (cliente HTTP + realtime) -->
+  <script src="https://cdn.jsdelivr.net/npm/pocketbase@0.26.9/dist/pocketbase.umd.js"></script>
+  <script src="js/data.js?v=20"></script>
+  <script src="js/storage.js?v=20"></script>
+  <script src="js/utils.js?v=20"></script>
+  <script src="js/views.js?v=20"></script>
+  <script src="js/app.js?v=20"></script>
 </body>
 </html>

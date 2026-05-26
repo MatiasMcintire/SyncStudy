@@ -10,6 +10,13 @@
   padding: 0;
 }
 
+/* Refuerza el comportamiento de [hidden] para que gane sobre reglas con
+   display: flex/grid del autor. Sin esto, un .modal__form[hidden] seguiría
+   visible porque .modal__form { display: flex } pisa al user-agent. */
+[hidden] {
+  display: none !important;
+}
+
 html {
   -webkit-text-size-adjust: 100%;
   -webkit-tap-highlight-color: transparent;

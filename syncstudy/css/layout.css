@@ -13,6 +13,10 @@ body {
 /* ============================================ */
 
 .sidebar {
+  /* Fijar la columna explícita evita que aparezcan en el grid del body
+     en posiciones inesperadas si se agregan hermanos (overlay de login, etc.). */
+  grid-column: 1;
+  grid-row: 1;
   background: var(--color-bg-soft);
   border-right: 1px solid var(--color-border);
   padding: var(--space-6) var(--space-4);
@@ -97,6 +101,26 @@ body {
   box-shadow: var(--shadow-xs);
 }
 
+/* Badge contador (pendientes hoy/atrasadas) en el item de navegación */
+.nav-item__badge {
+  margin-left: auto;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  border-radius: var(--radius-full);
+  background: var(--color-warning);
+  color: white;
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.nav-item__badge.overdue {
+  background: var(--color-danger);
+}
+
 .nav-item svg {
   width: 18px;
   height: 18px;
@@ -153,6 +177,8 @@ body {
 /* ============================================ */
 
 .main {
+  grid-column: 2;
+  grid-row: 1;
   display: flex;
   flex-direction: column;
   min-height: 100vh;
@@ -199,20 +225,35 @@ body {
   gap: var(--space-2);
 }
 
-/* Vistas */
+/* Vistas: ocupan todo el ancho del área principal. El padding lateral
+   de var(--space-8) coincide con el del topbar, así el borde izquierdo
+   de cada vista queda alineado con el título y el derecho con el botón
+   "+ Nueva tarea". Layout interno (1/2 columnas, grids, etc.) se decide
+   en cada vista. */
 .view {
   display: none;
   flex: 1;
   padding: var(--space-8);
-  max-width: var(--content-max);
   width: 100%;
-  margin: 0 auto;
   animation: fadeIn var(--transition-base);
 }
 
 .view.active {
   display: block;
 }
+
+/* Layout fluido de 2 columnas asimétricas. Cuando hay espacio, main y
+   side conviven lado a lado; cuando no, side baja debajo de main.
+   Sin breakpoints: el flex-wrap se acomoda solo por flex-basis. */
+.two-cols {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-6);
+  align-items: flex-start;
+}
+
+.two-cols__main { flex: 1 1 400px; min-width: 0; }
+.two-cols__side { flex: 0 1 360px; min-width: 0; }
 
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(4px); }
