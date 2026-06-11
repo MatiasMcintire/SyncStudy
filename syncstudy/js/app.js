@@ -198,6 +198,9 @@ const App = {
     $('#profileEmail').textContent = Storage.getCurrentEmail() || '—';
     $('#profileName').value = user.name;
     $('#profileInitial').value = user.initial;
+    $('#profileNickname').value = user.nickname || '';
+    this._pendingAvatarFile = null;
+    this._previewAvatarUrl = user.avatarUrl || null;
     $('#profileForm').dataset.color = user.color;
     $('#profileSoundToggle').checked = isSoundEnabled();
     this._refreshNotifBtnState();
@@ -248,13 +251,31 @@ const App = {
     }
   },
 
-  _refreshProfilePreview() {
+ _refreshProfilePreview() {
+    const preview = $('#profilePreviewAvatar');
+    const url = this._previewAvatarUrl;
+    if (url) {
+      preview.textContent = '';
+      preview.style.background = `center / cover no-repeat url("${url}")`;
+      return;
+    }
     const initial = ($('#profileInitial').value.trim() || $('#profileName').value.trim().charAt(0) || '?')
       .toUpperCase().slice(0, 2);
     const color = $('#profileForm').dataset.color || '#64748b';
-    const preview = $('#profilePreviewAvatar');
     preview.textContent = initial;
     preview.style.background = color;
+  },
+
+  _onAvatarPicked(e) {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      showToast('Elegí un archivo de imagen', 'alert-circle');
+      return;
+    }
+    this._pendingAvatarFile = file;
+    this._previewAvatarUrl = URL.createObjectURL(file);
+    this._refreshProfilePreview();
   },
 
   // ============================================
@@ -298,6 +319,7 @@ const App = {
     const name = $('#profileName').value.trim();
     const initial = $('#profileInitial').value.trim().toUpperCase();
     const color = $('#profileForm').dataset.color;
+    const nickname = $('#profileNickname').value.trim();
 
     if (!name) {
       showToast('El nombre no puede estar vacío', 'alert-circle');
@@ -308,7 +330,14 @@ const App = {
     submitBtn.disabled = true;
 
     try {
-      await Storage.updateProfile({ name, initial: initial || name.charAt(0), color });
+      await Storage.updateProfile({
+        name,
+        initial: initial || name.charAt(0),
+        color,
+        nickname,
+        avatar: this._pendingAvatarFile || undefined
+      });
+      this._pendingAvatarFile = null;
       this.closeProfileModal();
       showToast('Perfil actualizado', 'check-circle-2');
       Views.renderAll();
@@ -487,6 +516,8 @@ const App = {
     });
     $('#profileName').addEventListener('input', () => this._refreshProfilePreview());
     $('#profileInitial').addEventListener('input', () => this._refreshProfilePreview());
+    $('#profileAvatarBtn').addEventListener('click', () => $('#profileAvatarInput').click());
+    $('#profileAvatarInput').addEventListener('change', (e) => this._onAvatarPicked(e));
     $('#profileSoundToggle').addEventListener('change', (e) => {
       setSoundEnabled(e.target.checked);
       // Si lo acaban de activar, una previa de cortesía.

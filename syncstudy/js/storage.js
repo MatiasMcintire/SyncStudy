@@ -506,13 +506,15 @@ const Storage = {
 
   /** Actualiza el perfil del usuario logueado (name, initial, color).
    *  La regla de PB ya restringe a "id = @request.auth.id". */
-  async updateProfile({ name, initial, color }) {
+ async updateProfile({ name, initial, color, nickname, avatar }) {
     const uid = this._state.currentUserId;
     if (!uid) throw new Error('No hay usuario logueado');
     const payload = {};
     if (typeof name === 'string') payload.name = name.trim();
     if (typeof initial === 'string') payload.initial = initial.trim().slice(0, 2).toUpperCase();
     if (typeof color === 'string') payload.color = color;
+    if (typeof nickname === 'string') payload.nickname = nickname.trim().slice(0, 30);
+    if (avatar instanceof File) payload.avatar = avatar;
     const real = await this._pb.collection('users').update(uid, payload);
     const updated = this._userFromPB(real, uid);
     const i = this._state.users.findIndex(u => u.id === uid);
@@ -599,11 +601,13 @@ const Storage = {
   // Adapters PocketBase ↔ modelo de la app
   // ============================================
 
-  _userFromPB(u, meId) {
+_userFromPB(u, meId) {
     const name = u.name || u.email || 'Sin nombre';
     return {
       id: u.id,
       name,
+      nickname: u.nickname || '',
+      avatarUrl: u.avatar ? this._pb.files.getURL(u, u.avatar) : '',
       initial: u.initial || name.trim().charAt(0).toUpperCase() || '?',
       color: u.color || '#64748b',
       isMe: u.id === meId

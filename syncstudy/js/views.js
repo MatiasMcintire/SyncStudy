@@ -149,7 +149,7 @@ const Views = {
     recent.forEach(t => {
       const u = Storage.getUser(t.userId) || { name: 'Alguien', initial: '?', color: '#94A3B8' };
       body.appendChild(el('div', { class: 'activity-row' }, [
-        el('span', { class: 'activity-avatar', style: `background:${u.color}` }, u.initial),
+        avatarEl(u, 'activity-avatar'),
         el('div', { class: 'activity-row__text' }, [
           el('div', { class: 'activity-row__main' }, [
             el('strong', {}, u.name.split(' ')[0]), ' completó ',
@@ -314,10 +314,7 @@ const Views = {
           onClick: () => App.openTaskModal(t.id),
           title: `${t.title} · ${authorName}`
         }, [
-          el('span', {
-            class: 'cal-task__avatar',
-            style: `background: ${author ? author.color : '#9ca3af'}`
-          }, author ? author.initial : '?'),
+          avatarEl(author, 'cal-task__avatar'),
           el('span', { class: 'cal-task__title' }, t.title),
           this._renderCommentBadge(t.id)
         ]);
@@ -475,10 +472,7 @@ const Views = {
       onClick: () => App.openTaskModal(t.id)
     }, [
       // Avatar del autor
-      el('div', {
-        class: 'cal-day-zoom__avatar',
-        style: `background: ${author ? author.color : '#9ca3af'}`
-      }, author ? author.initial : '?'),
+      avatarEl(author, 'cal-day-zoom__avatar', 'div'),
       // Bloque de contenido
       el('div', { class: 'cal-day-zoom__content' }, [
         el('div', { class: 'cal-day-zoom__top' }, [
@@ -637,10 +631,7 @@ const Views = {
         class: 'member-card' + (member.isMe ? ' is-me' : '')
       }, [
         el('div', { class: 'member-card__header' }, [
-          el('div', {
-            class: 'peer-avatar',
-            style: `background: ${member.color}`
-          }, member.initial),
+          avatarEl(member, 'peer-avatar', 'div'),
           el('div', {}, [
             el('div', { class: 'member-card__name' },
               member.isMe ? `${member.name} (tú)` : member.name),
@@ -778,10 +769,7 @@ const Views = {
         class: 'weekly__ranking-row' + (entry.user.id === meId ? ' is-me' : '')
       }, [
         el('span', { class: 'weekly__ranking-pos' }, `#${idx + 1}`),
-        el('div', {
-          class: 'weekly__ranking-avatar',
-          style: `background: ${entry.user.color}`
-        }, entry.user.initial),
+        avatarEl(entry.user, 'weekly__ranking-avatar', 'div'),
         el('div', { class: 'weekly__ranking-info' }, [
           el('div', { class: 'weekly__ranking-name' },
             entry.user.id === meId ? `${entry.user.name} (tú)` : entry.user.name),
@@ -815,10 +803,7 @@ const Views = {
       );
       list.appendChild(el('li', { class: 'weekly__late-item' }, [
         el('span', { class: 'weekly__late-author' }, [
-          el('span', {
-            class: 'weekly__late-avatar',
-            style: `background: ${author ? author.color : '#9ca3af'}`
-          }, author ? author.initial : '?'),
+          avatarEl(author, 'weekly__late-avatar'),
           el('span', {}, author
             ? (author.id === meId ? 'Tú' : author.name.split(' ')[0])
             : '?')
@@ -852,8 +837,14 @@ const Views = {
     if (!user) return;
     const group = Storage.getGroup();
     const myGroups = Storage.getMyGroups();
-    $('#sidebarAvatar').textContent = user.initial;
-    $('#sidebarAvatar').style.background = user.color;
+    const sb = $('#sidebarAvatar');
+    if (user.avatarUrl) {
+      sb.textContent = '';
+      sb.style.background = `center / cover no-repeat url("${user.avatarUrl}")`;
+    } else {
+      sb.textContent = user.initial;
+      sb.style.background = user.color;
+    }
     $('#sidebarUserName').textContent = user.name;
     $('#sidebarUserGroup').textContent = group
       ? group.name

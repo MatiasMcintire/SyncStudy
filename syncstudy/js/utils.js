@@ -226,6 +226,25 @@ function el(tag, props = {}, children = []) {
   return node;
 }
 
+/* Avatar reutilizable: muestra la FOTO si el usuario tiene una (avatarUrl);
+   si no, el círculo de color con la inicial. `user` puede ser null. */
+function avatarEl(user, className, tag = 'span') {
+  const u = user || {};
+  if (u.avatarUrl) {
+    return el(tag, {
+      class: className,
+      style: `background-image:url("${u.avatarUrl}"); background-size:cover; background-position:center;`,
+      title: u.name || ''
+    });
+  }
+  return el(tag, {
+    class: className,
+    style: `background:${u.color || '#9ca3af'}`,
+    title: u.name || ''
+  }, u.initial || '?');
+}
+
+
 function refreshIcons() {
   // Lucide expone window.lucide.createIcons() después de cargar
   if (window.lucide && window.lucide.createIcons) {
