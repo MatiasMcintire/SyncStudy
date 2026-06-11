@@ -5,12 +5,25 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="description" content="SyncStudy — Calendario colaborativo para la organización académica" />
   <title>SyncStudy</title>
+  <!-- Aplica el tema guardado antes de pintar (evita el flash claro→oscuro) -->
+  <script>try{if(localStorage.getItem('syncstudy_theme')==='dark')document.documentElement.dataset.theme='dark';}catch(e){}</script>
 
-  <!-- Tipografía Inter desde Google Fonts -->
+  <!-- PWA: app instalable en el celular -->
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#6366F1" />
+  <link rel="icon" type="image/png" href="icons/favicon-64.png" />
+  <!-- iOS: instalación y pantalla completa -->
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="SyncStudy" />
+  <meta name="mobile-web-app-capable" content="yes" />
+
+  <!-- Tipografía Plus Jakarta Sans desde Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link
-    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+    href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
     rel="stylesheet"
   />
 
@@ -18,11 +31,11 @@
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
 
   <!-- Hojas de estilo (con cache-bust para evitar versiones obsoletas en dev) -->
-  <link rel="stylesheet" href="css/reset.css?v=20" />
-  <link rel="stylesheet" href="css/variables.css?v=20" />
-  <link rel="stylesheet" href="css/layout.css?v=20" />
-  <link rel="stylesheet" href="css/components.css?v=20" />
-  <link rel="stylesheet" href="css/views.css?v=20" />
+  <link rel="stylesheet" href="css/reset.css?v=28" />
+  <link rel="stylesheet" href="css/variables.css?v=28" />
+  <link rel="stylesheet" href="css/layout.css?v=28" />
+  <link rel="stylesheet" href="css/components.css?v=28" />
+  <link rel="stylesheet" href="css/views.css?v=28" />
 
   <!-- CSS crítico del overlay de login: inline para que no quede a merced del cache. -->
   <style>
@@ -33,7 +46,7 @@
       align-items: center;
       justify-content: center;
       padding: 24px;
-      background: #f7f7f8;
+      background: linear-gradient(135deg, #EEF2FF 0%, #F5F3FF 55%, #FFF1F2 100%);
       z-index: 9999;
     }
     .login-screen.open { display: flex; }
@@ -46,7 +59,7 @@
   <aside class="sidebar" id="sidebar">
     <div class="sidebar__brand">
       <div class="brand__logo">
-        <i data-lucide="calendar-sync"></i>
+        <i data-lucide="calendar-check"></i>
       </div>
       <div class="brand__text">
         <span class="brand__name">SyncStudy</span>
@@ -94,6 +107,9 @@
           <span class="user-group" id="sidebarUserGroup">TUPA · 2° año</span>
         </div>
       </div>
+      <button class="btn-icon" id="btnTheme" aria-label="Cambiar tema" title="Modo claro / oscuro">
+        <i data-lucide="moon"></i>
+      </button>
       <button class="btn-icon user-logout" id="btnLogout" aria-label="Cerrar sesión" title="Cerrar sesión">
         <i data-lucide="log-out"></i>
       </button>
@@ -122,48 +138,62 @@
     <!-- VISTA: HOY -->
     <!-- =================================================== -->
     <section class="view view--today active" data-view="today">
-      <div class="view__hero">
-        <div class="hero__greeting">
-          <h2 id="todayGreeting">Buenos días, Fabián</h2>
-          <p id="todayDate">—</p>
+      <!-- HERO -->
+      <div class="dash-hero">
+        <div class="dash-hero__content">
+          <h2 class="dash-hero__greeting" id="todayGreeting">Hola 👋</h2>
+          <p class="dash-hero__subtitle" id="todaySubtitle">Tu grupo está sincronizado.</p>
+          <div class="dash-hero__stats" id="heroStats"><!-- stats por JS --></div>
         </div>
-        <div class="hero__group-progress" id="groupProgressCard">
-          <div class="progress-card__header">
-            <i data-lucide="users"></i>
-            <span>Tu grupo hoy</span>
-          </div>
-          <div class="progress-card__bar">
-            <div class="progress-bar">
-              <div class="progress-bar__fill" id="progressBarFill"></div>
-            </div>
-            <span class="progress-card__stat" id="progressStat">0 / 0</span>
-          </div>
-          <p class="progress-card__caption" id="progressCaption">
-            Cuando completes tareas, tu grupo lo verá.
-          </p>
+        <div class="dash-hero__art" aria-hidden="true">
+          <svg viewBox="0 0 200 170" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="58" y="42" width="108" height="98" rx="18" fill="#ffffff" opacity="0.28"/>
+            <rect x="36" y="28" width="108" height="98" rx="18" fill="#ffffff" opacity="0.94"/>
+            <rect x="36" y="28" width="108" height="44" rx="18" fill="#E0E7FF"/>
+            <rect x="36" y="54" width="108" height="18" fill="#E0E7FF"/>
+            <rect x="60" y="20" width="9" height="20" rx="4" fill="#4F46E5"/>
+            <rect x="111" y="20" width="9" height="20" rx="4" fill="#4F46E5"/>
+            <path d="M62 92 l15 15 l30 -33" stroke="#6366F1" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="178" cy="36" r="7" fill="#fff" opacity="0.85"/>
+            <circle cx="20" cy="118" r="5" fill="#fff" opacity="0.7"/>
+            <circle cx="184" cy="116" r="9" fill="#fff" opacity="0.5"/>
+          </svg>
         </div>
       </div>
 
-      <div class="two-cols">
-        <div class="view__section two-cols__main">
-          <div class="section__header">
-            <h3>Tus 3 tareas prioritarias</h3>
-            <span class="section__hint">Foco mínimo · máximo impacto</span>
-          </div>
-          <div class="task-list" id="todayTaskList">
-            <!-- Tareas generadas por JS -->
-          </div>
-        </div>
+      <!-- GRID DE MÓDULOS -->
+      <div class="dash-grid">
+        <section class="module module--progress">
+          <header class="module__head">
+            <span class="module__icon"><i data-lucide="trending-up"></i></span>
+            <h3>Progreso semanal</h3>
+          </header>
+          <div id="weeklyProgressBody"><!-- por JS --></div>
+        </section>
 
-        <div class="view__section two-cols__side">
-          <div class="section__header">
-            <h3>Compañeros activos ahora</h3>
-            <button class="btn-link" data-go-view="group">Ver grupo completo →</button>
-          </div>
-          <div class="peer-strip" id="peerStrip">
-            <!-- Peers generados por JS -->
-          </div>
-        </div>
+        <section class="module module--tasks">
+          <header class="module__head">
+            <span class="module__icon"><i data-lucide="target"></i></span>
+            <h3>Tus tareas prioritarias</h3>
+          </header>
+          <div class="task-list" id="todayTaskList"><!-- por JS --></div>
+        </section>
+
+        <section class="module module--activity">
+          <header class="module__head">
+            <span class="module__icon"><i data-lucide="activity"></i></span>
+            <h3>Actividad del grupo</h3>
+          </header>
+          <div id="groupActivityBody"><!-- por JS --></div>
+        </section>
+
+        <section class="module module--calendar">
+          <header class="module__head">
+            <span class="module__icon"><i data-lucide="calendar-days"></i></span>
+            <h3 id="miniCalLabel">—</h3>
+          </header>
+          <div class="mini-cal" id="miniCal"><!-- por JS --></div>
+        </section>
       </div>
     </section>
 
@@ -586,12 +616,12 @@
     <div class="login-card" role="dialog" aria-labelledby="loginTitle">
       <div class="login-brand">
         <div class="brand__logo">
-          <i data-lucide="calendar-sync"></i>
+          <i data-lucide="calendar-check"></i>
         </div>
         <span>SyncStudy</span>
       </div>
       <h1 id="loginTitle">Inicia sesión</h1>
-      <p class="login-subtitle">Conéctate para ver el calendario de tu grupo.</p>
+      <p class="login-subtitle" id="loginSubtitle">Conéctate para ver el calendario de tu grupo.</p>
       <form class="login-form" id="loginForm">
         <label class="field">
           <span class="field__label">Correo</span>
@@ -607,8 +637,32 @@
           <span>Entrar</span>
         </button>
       </form>
+
+      <!-- FORM DE REGISTRO (oculto por defecto; se alterna con el de login) -->
+      <form class="login-form" id="registerForm" hidden>
+        <label class="field">
+          <span class="field__label">Nombre</span>
+          <input type="text" id="registerName" autocomplete="name" />
+        </label>
+        <label class="field">
+          <span class="field__label">Correo</span>
+          <input type="email" id="registerEmail" autocomplete="username" />
+        </label>
+        <label class="field">
+          <span class="field__label">Contraseña</span>
+          <input type="password" id="registerPassword" minlength="8" autocomplete="new-password" />
+          <span class="field__hint">Mínimo 8 caracteres.</span>
+        </label>
+        <p class="login-error" id="registerError" hidden></p>
+        <button type="submit" class="btn btn--primary btn--full" id="registerSubmit">
+          <i data-lucide="user-plus"></i>
+          <span>Crear cuenta</span>
+        </button>
+      </form>
+
       <p class="login-hint">
-        Demo: <code>fabian@syncstudy.local</code> · <code>syncstudy123</code>
+        <span id="toGoRegister">¿No tienes cuenta? <a href="#" id="linkToRegister">Crear una</a></span>
+        <span id="toGoLogin" hidden>¿Ya tienes cuenta? <a href="#" id="linkToLogin">Inicia sesión</a></span>
       </p>
     </div>
   </div>
@@ -618,10 +672,20 @@
   <!-- =================================================== -->
   <!-- SDK de PocketBase (cliente HTTP + realtime) -->
   <script src="https://cdn.jsdelivr.net/npm/pocketbase@0.26.9/dist/pocketbase.umd.js"></script>
-  <script src="js/data.js?v=20"></script>
-  <script src="js/storage.js?v=20"></script>
-  <script src="js/utils.js?v=20"></script>
-  <script src="js/views.js?v=20"></script>
-  <script src="js/app.js?v=20"></script>
+  <script src="js/storage.js?v=28"></script>
+  <script src="js/utils.js?v=28"></script>
+  <script src="js/views.js?v=28"></script>
+  <script src="js/app.js?v=28"></script>
+
+  <!-- PWA: registrar el service worker (solo en https o localhost) -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js').catch((err) => {
+          console.warn('No se pudo registrar el service worker:', err);
+        });
+      });
+    }
+  </script>
 </body>
 </html>

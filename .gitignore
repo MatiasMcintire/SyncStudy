@@ -1,2 +1,18 @@
 # Backend local (PocketBase) — no se versiona, cada dev lo descarga
 pocketbase/
+
+# Documentos del ramo (PDF / Word) — no aportan al código
+*.pdf
+*.docx
+
+# Imágenes sueltas en la raíz (capturas, fotos) — no aportan al código
+# (ojo: las de syncstudy/icons/ SÍ se versionan, son parte de la PWA)
+/*.png
+
+# Bitácoras y material de evaluación (no son parte del software)
+bitacora-borrador/
+Bitacora-Evaluacion-N3-SyncStudy.md
+1_testeo.md
+
+# Exploraciones de marca (assets de diseño, no necesarios para correr la app)
+brand-explorations/

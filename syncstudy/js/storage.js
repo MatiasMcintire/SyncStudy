@@ -19,20 +19,16 @@
  * cambio de backend.
  */
 
-const PB_URL = 'http://127.0.0.1:8090';
-
-// Dev shortcut: si la URL trae ?user=<slug> con un slug válido, la app
-// hace login automático con esa cuenta y contraseña fija. Sirve para
-// abrir varias pestañas como usuarios distintos al probar realtime sin
-// tener que estar logueando a mano cada vez.
-// Ej: http://127.0.0.1:5500/?user=camila
-const PB_DEV_USERS = ['fabian', 'camila', 'joaquin', 'valentina', 'diego', 'sofia'];
-const PB_DEV_PASS = 'syncstudy123';
-
-function _pickDevSlug() {
-  const requested = (new URLSearchParams(location.search).get('user') || '').toLowerCase();
-  return PB_DEV_USERS.includes(requested) ? requested : null;
-}
+// Dónde vive el backend PocketBase.
+//   - En desarrollo el frontend se sirve aparte (python http.server en :5500)
+//     mientras PocketBase corre en :8090, así que apuntamos a 127.0.0.1:8090.
+//   - En producción/demo PocketBase sirve TAMBIÉN el frontend (carpeta pb_public),
+//     entonces API y página comparten origen: usamos location.origin. Esto hace
+//     que funcione igual por LAN o por un túnel HTTPS (Cloudflare/ngrok) sin tocar
+//     nada más.
+const PB_URL = location.port === '5500'
+  ? 'http://127.0.0.1:8090'
+  : location.origin;
 
 const Storage = {
   _pb: null,
@@ -51,33 +47,17 @@ const Storage = {
   _unsubComments: null,
 
   /**
-   * Configura el cliente PocketBase + el authStore. NO autentica. Si la URL
-   * trae ?user=<slug> con un slug válido, intenta el dev shortcut automático.
-   * Devuelve true si quedó autenticado (sea por sesión guardada o shortcut).
+   * Configura el cliente PocketBase + el authStore. NO autentica.
+   * Devuelve true si ya había una sesión guardada válida.
    */
   async init() {
-    const devSlug = _pickDevSlug();
     // El bundle UMD de PocketBase no expone LocalAuthStore como estática,
     // así que tomamos la clase via reflection sobre un store por defecto.
-    // Cuando se usa el dev shortcut, cada slug tiene su propia clave de
-    // localStorage para que varias pestañas con users distintos no se pisen.
     const probe = new PocketBase(PB_URL);
     const AuthStoreClass = probe.authStore.constructor;
-    const storageKey = devSlug ? `syncstudy_auth_${devSlug}` : 'syncstudy_auth';
-    const authStore = new AuthStoreClass(storageKey);
+    const authStore = new AuthStoreClass('syncstudy_auth');
     this._pb = new PocketBase(PB_URL, authStore);
     this._pb.autoCancellation(false);
-
-    if (devSlug) {
-      const expectedEmail = `${devSlug}@syncstudy.local`;
-      if (!this._pb.authStore.isValid || this._pb.authStore.record?.email !== expectedEmail) {
-        try {
-          await this._pb.collection('users').authWithPassword(expectedEmail, PB_DEV_PASS);
-        } catch (err) {
-          console.warn('Dev shortcut falló:', err);
-        }
-      }
-    }
 
     return this.isAuthenticated();
   },
@@ -93,6 +73,29 @@ const Storage = {
     await this._refreshAll();
     this._subscribeRealtime();
     return this._state;
+  },
+
+  /**
+   * Crea una cuenta nueva (registro público) y deja la sesión iniciada.
+   * El correo es la identidad de login. La verificación de correo queda
+   * desactivada por ahora (no se exige verified para usar la app).
+   */
+  async register(name, email, password) {
+    const clean = (name || '').trim();
+    const initial = (clean[0] || '?').toUpperCase();
+    const palette = ['#2563eb', '#10b981', '#f59e0b', '#ec4899', '#8b5cf6', '#06b6d4', '#ef4444'];
+    const color = palette[Math.floor(Math.random() * palette.length)];
+    await this._pb.collection('users').create({
+      email,
+      password,
+      passwordConfirm: password,
+      name: clean,
+      initial,
+      color,
+      emailVisibility: true
+    });
+    // Reutiliza login(): autentica, carga estado y se suscribe en realtime.
+    return this.login(email, password);
   },
 
   /** Continúa una sesión ya autenticada: carga estado y se suscribe. */
@@ -456,28 +459,34 @@ const Storage = {
     if (!/^[A-Z0-9]{6}$/.test(code)) {
       throw new Error('El código debe tener 6 caracteres (letras y números)');
     }
-    let found;
+    // El alta como miembro la hace un endpoint controlado del server (hook),
+    // para que la colección "groups" pueda tener reglas estrictas (solo miembros).
+    let res;
     try {
-      found = await this._pb.collection('groups').getFirstListItem(`inviteCode = "${code}"`);
-    } catch (_) {
-      throw new Error('No se encontró ningún grupo con ese código');
+      res = await this._pb.send('/api/syncstudy/join', { method: 'POST', body: { code } });
+    } catch (err) {
+      throw new Error(err?.response?.message || err?.message || 'No se pudo unir al grupo');
     }
-    const uid = this._state.currentUserId;
-    if (!found.members.includes(uid)) {
-      const updated = await this._pb.collection('groups').update(found.id, {
-        members: [...found.members, uid]
-      });
-      Object.assign(found, updated);
+    // Recargar el estado para traer el grupo recién unido (miembros + tareas).
+    await this._refreshAll();
+    this.setCurrentGroupId(res.id);
+    return this.getGroup() || { id: res.id, name: res.name };
+  },
+
+  /** Expulsa a un miembro del grupo. Solo el dueño puede (lo refuerza la regla
+   *  updateRule = owner del lado del server). */
+  async kickMember(groupId, userId) {
+    const g = this._state.groups.find(x => x.id === groupId);
+    if (!g) throw new Error('Grupo no encontrado');
+    if (g.owner !== this._state.currentUserId) {
+      throw new Error('Solo el dueño del grupo puede expulsar miembros');
     }
-    const group = this._groupFromPB(found);
-    const i = this._state.groups.findIndex(g => g.id === group.id);
-    if (i >= 0) this._state.groups[i] = group;
-    else {
-      this._state.groups.push(group);
-      await this._loadGroupExtras(group);
+    if (userId === g.owner) {
+      throw new Error('No podés expulsar al dueño del grupo');
     }
-    this.setCurrentGroupId(group.id);
-    return group;
+    const newMembers = (g.members || []).filter(id => id !== userId);
+    await this._pb.collection('groups').update(groupId, { members: newMembers });
+    await this._refreshAll();
   },
 
   /** Quita al usuario actual del grupo. Si era el último miembro, no borra

@@ -17,7 +17,7 @@ body {
      en posiciones inesperadas si se agregan hermanos (overlay de login, etc.). */
   grid-column: 1;
   grid-row: 1;
-  background: var(--color-bg-soft);
+  background: var(--color-surface);
   border-right: 1px solid var(--color-border);
   padding: var(--space-6) var(--space-4);
   display: flex;
@@ -38,14 +38,15 @@ body {
 }
 
 .brand__logo {
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
   border-radius: var(--radius-md);
-  background: var(--color-accent);
+  background: var(--gradient-brand);
   color: white;
   display: flex;
   align-items: center;
   justify-content: center;
+  box-shadow: 0 6px 16px -6px rgba(99, 102, 241, 0.5);
 }
 
 .brand__logo svg {
@@ -60,7 +61,8 @@ body {
 
 .brand__name {
   font-size: var(--font-size-md);
-  font-weight: 600;
+  font-weight: 800;
+  letter-spacing: -0.02em;
   color: var(--color-text);
 }
 
@@ -91,14 +93,18 @@ body {
 }
 
 .nav-item:hover {
-  background: rgba(0, 0, 0, 0.04);
+  background: var(--color-bg-soft);
   color: var(--color-text);
 }
 
 .nav-item.active {
-  background: white;
-  color: var(--color-text);
-  box-shadow: var(--shadow-xs);
+  background: var(--color-accent-soft);
+  color: var(--color-accent-text);
+  font-weight: 600;
+}
+
+.nav-item.active svg {
+  color: var(--color-accent);
 }
 
 /* Badge contador (pendientes hoy/atrasadas) en el item de navegación */
@@ -133,9 +139,9 @@ body {
   gap: var(--space-3);
   padding: var(--space-3);
   margin-top: var(--space-4);
-  border-radius: var(--radius-md);
-  background: white;
-  box-shadow: var(--shadow-xs);
+  border-radius: var(--radius-lg);
+  background: var(--color-bg-soft);
+  border: 1px solid var(--color-border);
 }
 
 .user-avatar {
@@ -215,7 +221,8 @@ body {
 
 .topbar__title {
   font-size: var(--font-size-xl);
-  font-weight: 600;
+  font-weight: 700;
+  letter-spacing: -0.02em;
   color: var(--color-text);
   flex: 1;
 }

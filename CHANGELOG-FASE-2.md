@@ -517,7 +517,7 @@ cd /home/mts/Escritorio/SyncStudy/pocketbase
 ```
 
 - Admin UI: `http://127.0.0.1:8090/_/`
-- Admin: `admin@syncstudy.local` / `syncstudy-dev-2026`
+- Admin: `admin@syncstudy.local` / `<contraseña-del-admin>`
 - Seed users (todos con password `syncstudy123`): `fabian@syncstudy.local`, `camila@`, `joaquin@`, `valentina@`, `diego@`, `sofia@`.
 
 Para resetear schema/seed (idempotente):
@@ -544,7 +544,7 @@ cd /home/mts/Escritorio/SyncStudy/pocketbase
 # Detener el proceso si está corriendo
 rm -rf pb_data/
 ./pocketbase serve --http=127.0.0.1:8090 &
-./pocketbase superuser upsert admin@syncstudy.local syncstudy-dev-2026
+./pocketbase superuser upsert admin@syncstudy.local <contraseña-del-admin>
 python3 setup.py
 ```
 

@@ -166,7 +166,7 @@
 }
 
 .cal-day {
-  background: white;
+  background: var(--color-surface);
   border-radius: var(--radius-md);
   padding: var(--space-3);
   /* Altura fija para que las 7 columnas queden perfectamente alineadas,
@@ -270,7 +270,7 @@
 }
 
 .cal-task:hover {
-  background: white;
+  background: var(--color-surface);
   box-shadow: var(--shadow-xs);
 }
 
@@ -328,7 +328,7 @@
 }
 
 .cal-month__day {
-  background: white;
+  background: var(--color-surface);
   border-radius: var(--radius-md);
   padding: var(--space-2);
   min-height: 90px;
@@ -462,7 +462,7 @@
 /* ============================================ */
 
 .cal-day-zoom {
-  background: white;
+  background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   padding: var(--space-6);
@@ -541,7 +541,7 @@
 }
 
 .cal-day-zoom__task:hover {
-  background: white;
+  background: var(--color-surface);
   box-shadow: var(--shadow-xs);
 }
 
@@ -821,7 +821,7 @@
   border-radius: var(--radius-md);
   font-family: inherit;
   font-size: var(--font-size-sm);
-  background: white;
+  background: var(--color-surface);
 }
 
 .task-comments__composer textarea:focus {
@@ -1220,7 +1220,7 @@
 }
 
 .member-card {
-  background: white;
+  background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   padding: var(--space-5);
@@ -1361,7 +1361,7 @@
 }
 
 .weekly-card {
-  background: white;
+  background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   padding: var(--space-6);
@@ -1797,7 +1797,7 @@
   align-items: center;
   gap: var(--space-2);
   padding: var(--space-2) var(--space-4);
-  background: white;
+  background: var(--color-surface);
   border: 1px solid var(--color-accent);
   border-radius: var(--radius-md);
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
@@ -1861,3 +1861,167 @@
   color: var(--color-accent);
   border-bottom-color: var(--color-accent);
 }
+
+/* ============================================ */
+/* DASHBOARD "HOY" 2.0 — hero + módulos pastel   */
+/* ============================================ */
+
+.view--today { max-width: var(--content-max); }
+
+/* ---- HERO ---- */
+.dash-hero {
+  position: relative;
+  overflow: hidden;
+  background: var(--gradient-hero);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-2xl);
+  padding: var(--space-8);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-6);
+  margin-bottom: var(--space-section);
+}
+.dash-hero__greeting {
+  font-size: var(--font-size-display);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+  color: var(--color-text);
+}
+.dash-hero__subtitle {
+  margin-top: 6px;
+  color: var(--color-text-soft);
+  font-size: var(--font-size-md);
+}
+.dash-hero__stats { display: flex; flex-wrap: wrap; gap: var(--space-3); margin-top: var(--space-5); }
+.hero-stat {
+  display: flex; align-items: center; gap: 10px;
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(6px);
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  border-radius: var(--radius-lg);
+  padding: 10px 16px 10px 12px;
+  box-shadow: var(--shadow-sm);
+}
+.hero-stat__icon {
+  width: 36px; height: 36px; border-radius: 11px;
+  display: grid; place-items: center;
+  background: var(--gradient-brand); color: #fff;
+}
+.hero-stat__icon svg { width: 18px; height: 18px; }
+.hero-stat__value { display: block; font-weight: 800; font-size: var(--font-size-lg); line-height: 1.05; color: var(--color-text); }
+.hero-stat__label { display: block; font-size: var(--font-size-xs); color: var(--color-text-soft); }
+.dash-hero__art { flex-shrink: 0; }
+.dash-hero__art svg { width: 190px; height: auto; display: block; filter: drop-shadow(0 12px 24px rgba(79,70,229,0.18)); }
+@media (max-width: 760px) {
+  .dash-hero { padding: var(--space-6); }
+  .dash-hero__art { display: none; }
+  .dash-hero__greeting { font-size: 27px; }
+}
+
+/* ---- GRID DE MÓDULOS (auto-fit: usa todo el ancho, 2–4 columnas) ---- */
+.dash-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+  gap: var(--space-6);
+  align-items: start;
+}
+
+.module {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  padding: var(--space-6);
+  box-shadow: var(--shadow-card);
+}
+@media (min-width: 1024px) { .module { padding: var(--space-8); } }
+.module__head { display: flex; align-items: center; gap: 12px; margin-bottom: var(--space-5); }
+.module__head h3 { font-size: var(--font-size-lg); font-weight: 700; letter-spacing: -0.01em; color: var(--color-text); }
+.module__icon { width: 36px; height: 36px; border-radius: 11px; display: grid; place-items: center; flex-shrink: 0; }
+.module__icon svg { width: 18px; height: 18px; }
+.module--progress .module__icon { background: var(--green-100);  color: var(--green-600); }
+.module--tasks    .module__icon { background: var(--indigo-100); color: var(--indigo-600); }
+.module--activity .module__icon { background: var(--violet-100); color: var(--violet-600); }
+.module--calendar .module__icon { background: var(--sky-100);    color: var(--sky-500); }
+
+/* empty-state dentro de módulos: más compacto y sin caja */
+.empty-state--module { padding: var(--space-6) var(--space-4); background: transparent; border: none; }
+
+/* ---- Progreso semanal ---- */
+.wp-row { margin-bottom: var(--space-4); }
+.wp-row__top { display: flex; justify-content: space-between; margin-bottom: 6px; font-size: var(--font-size-sm); }
+.wp-row__label { color: var(--color-text-soft); font-weight: 500; }
+.wp-row__pct { color: var(--color-text); font-weight: 700; }
+.wp-bar { height: 10px; border-radius: 99px; background: var(--color-bg-soft); overflow: hidden; }
+.wp-bar__fill { height: 100%; border-radius: 99px; transition: width var(--transition-slow); }
+.wp-bar__fill--me { background: var(--gradient-brand); }
+.wp-bar__fill--group { background: linear-gradient(90deg, var(--green-500), var(--green-600)); }
+.wp-goal {
+  display: flex; align-items: center; gap: 8px;
+  margin-top: var(--space-4); padding-top: var(--space-4);
+  border-top: 1px solid var(--color-border);
+  color: var(--green-600); font-weight: 600; font-size: var(--font-size-sm);
+}
+.wp-goal svg { width: 18px; height: 18px; }
+
+/* ---- Actividad del grupo ---- */
+.activity-row { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--color-border); }
+.activity-row:last-child { border-bottom: none; }
+.activity-avatar { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; color: #fff; font-weight: 700; font-size: 13px; flex-shrink: 0; }
+.activity-row__text { flex: 1; min-width: 0; }
+.activity-row__main { font-size: var(--font-size-sm); color: var(--color-text-soft); }
+.activity-row__main strong { color: var(--color-text); font-weight: 700; }
+.activity-row__task { color: var(--color-text); font-weight: 600; }
+.activity-row__time { font-size: var(--font-size-xs); color: var(--color-text-muted); margin-top: 2px; }
+.activity-check { width: 26px; height: 26px; border-radius: 50%; background: var(--green-100); color: var(--green-600); display: grid; place-items: center; flex-shrink: 0; }
+.activity-check svg { width: 15px; height: 15px; }
+
+/* ---- Mini calendario ---- */
+.mini-cal { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+.mini-cal__dow { text-align: center; font-size: 10px; font-weight: 700; color: var(--color-text-muted); padding-bottom: 4px; }
+.mini-cal__cell {
+  aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  font-size: var(--font-size-sm); color: var(--color-text-soft); border-radius: 10px; gap: 1px;
+}
+.mini-cal__cell--empty { visibility: hidden; }
+.mini-cal__cell--today { background: var(--gradient-brand); color: #fff; font-weight: 700; }
+.mini-cal__dot { width: 5px; height: 5px; border-radius: 50%; background: var(--indigo-500); }
+.mini-cal__cell--today .mini-cal__dot { background: #fff; }
+
+/* ===== Ajustes finos · modo oscuro ===== */
+[data-theme="dark"] .hero-stat { background: rgba(255, 255, 255, 0.06); border-color: rgba(255, 255, 255, 0.10); }
+[data-theme="dark"] .task-checkbox { background: var(--color-bg-soft); }
+[data-theme="dark"] .login-screen { background: linear-gradient(135deg, #14161F, #1B1626, #241420); }
+[data-theme="dark"] .dash-hero { border-color: rgba(255, 255, 255, 0.06); }
+
+/* ===== Estados vacíos ilustrados ===== */
+.empty-state--rich {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 6px;
+  padding: var(--space-6) var(--space-4);
+  background: transparent;
+  border: none;
+}
+.empty-illus { width: 92px; height: 92px; margin-bottom: 2px; }
+.empty-illus svg { width: 100%; height: 100%; display: block; margin: 0; opacity: 1; }
+.empty-state__title { font-size: var(--font-size-md); font-weight: 700; color: var(--color-text); }
+.empty-state--rich .empty-state__text { font-size: var(--font-size-sm); color: var(--color-text-muted); max-width: 280px; line-height: 1.5; }
+
+/* ===== Botón expulsar miembro (solo lo ve el dueño) ===== */
+.member-kick {
+  margin-left: auto;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+  transition: all var(--transition-fast);
+}
+.member-kick:hover { background: var(--color-danger-soft); color: var(--color-danger); }
+.member-kick svg { width: 16px; height: 16px; }

@@ -284,7 +284,11 @@ function playCompleteSound() {
 let toastTimeout;
 function showToast(message, icon = 'check') {
   const toast = $('#toast');
-  toast.innerHTML = `<i data-lucide="${icon}"></i><span>${message}</span>`;
+  // El icono es interno (controlado); el mensaje puede traer datos del usuario
+  // (nombres de grupo, títulos de tarea), así que va por textContent para
+  // evitar XSS — nunca por innerHTML.
+  toast.innerHTML = `<i data-lucide="${icon}"></i><span></span>`;
+  toast.querySelector('span').textContent = message;
   refreshIcons();
   toast.classList.add('show');
 

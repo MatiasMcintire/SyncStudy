@@ -23,108 +23,176 @@ const _calTooltip = {
   visible: false
 };
 
+// Ilustraciones SVG para estados vacíos. Usan rgba de marca para verse bien
+// tanto en modo claro como oscuro.
+const ILLUS = {
+  done: `<svg viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="60" cy="60" r="42" fill="rgba(34,197,94,0.14)"/><path d="M42 61 l13 13 l25 -28" stroke="#22C55E" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/><circle cx="97" cy="33" r="5" fill="#22C55E" opacity="0.55"/><circle cx="24" cy="42" r="4" fill="#22C55E" opacity="0.45"/><circle cx="33" cy="93" r="3.5" fill="#22C55E" opacity="0.4"/></svg>`,
+  activity: `<svg viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="60" cy="60" r="44" fill="rgba(139,92,246,0.12)"/><circle cx="48" cy="52" r="13" fill="#8B5CF6"/><path d="M28 86 a20 20 0 0 1 40 0 z" fill="#8B5CF6"/><circle cx="78" cy="56" r="11" fill="#A78BFA"/><path d="M61 86 a17 17 0 0 1 34 0 z" fill="#A78BFA"/></svg>`,
+  week: `<svg viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="60" cy="60" r="42" fill="rgba(99,102,241,0.13)"/><rect x="40" y="64" width="11" height="20" rx="3" fill="#6366F1" opacity="0.55"/><rect x="55" y="50" width="11" height="34" rx="3" fill="#6366F1"/><rect x="70" y="58" width="11" height="26" rx="3" fill="#6366F1" opacity="0.8"/></svg>`,
+  calendar: `<svg viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="60" cy="60" r="42" fill="rgba(99,102,241,0.12)"/><rect x="38" y="42" width="44" height="42" rx="9" fill="#6366F1"/><rect x="38" y="42" width="44" height="14" rx="9" fill="#4F46E5"/><rect x="48" y="36" width="6" height="12" rx="3" fill="#4F46E5"/><rect x="66" y="36" width="6" height="12" rx="3" fill="#4F46E5"/><rect x="50" y="66" width="20" height="5" rx="2.5" fill="#ffffff" opacity="0.9"/></svg>`
+};
+
 const Views = {
   // ============================================
   // VISTA HOY
   // ============================================
   renderToday() {
     const user = Storage.getCurrentUser();
+    if (!user) return;
     const allTasks = Storage.getAllTasks();
-    const today = new Date();
-
-    // Saludo
-    $('#todayGreeting').textContent = `${getGreeting()}, ${user.name.split(' ')[0]}`;
-    $('#todayDate').textContent = formatDate(today);
-
-    // Tareas del usuario: prioridad combinada para "Hoy".
-    // 1) Atrasadas (más viejas primero — las más urgentes).
-    // 2) Pendientes de hoy (por prioridad descendente).
-    // 3) Si sobra hueco, completadas de hoy.
+    const members = Storage.getGroupMembers();
+    const peers = members.filter(u => !u.isMe);
     const myTasks = Storage.getTasksByUser(user.id);
-    const overduePending = myTasks
-      .filter(t => isOverdue(t))
+
+    // ---------- HERO ----------
+    $('#todayGreeting').textContent = `${getGreeting()}, ${user.name.split(' ')[0]} 👋`;
+    $('#todaySubtitle').textContent = peers.length
+      ? `Tu grupo está sincronizado · ${members.length} integrantes.`
+      : 'Creá o unite a un grupo para empezar a coordinar.';
+
+    const myPending = myTasks.filter(t => !t.completed).length;
+    const weekTasks = allTasks.filter(t => isThisWeek(t.dueDate));
+    const weekDone = weekTasks.filter(t => t.completed).length;
+    const groupPct = weekTasks.length ? Math.round((weekDone / weekTasks.length) * 100) : 0;
+
+    const stats = $('#heroStats');
+    stats.innerHTML = '';
+    stats.append(
+      this._heroStat('users', peers.length, peers.length === 1 ? 'compañero' : 'compañeros'),
+      this._heroStat('list-todo', myPending, myPending === 1 ? 'tarea pendiente' : 'tareas pendientes'),
+      this._heroStat('trending-up', `${groupPct}%`, 'avance semanal')
+    );
+
+    // ---------- PROGRESO SEMANAL ----------
+    const myWeek = myTasks.filter(t => isThisWeek(t.dueDate));
+    const myWeekDone = myWeek.filter(t => t.completed).length;
+    const myPct = myWeek.length ? Math.round((myWeekDone / myWeek.length) * 100) : 0;
+    this._renderWeeklyProgress(myPct, groupPct, weekDone);
+
+    // ---------- TAREAS PRIORITARIAS (top 3: atrasadas → hoy → próximas) ----------
+    const overduePending = myTasks.filter(t => isOverdue(t)).sort((a, b) => a.dueDate - b.dueDate);
+    const todayPending = myTasks.filter(t => isToday(t.dueDate) && !t.completed).sort((a, b) => b.priority - a.priority);
+    const upcoming = myTasks
+      .filter(t => !t.completed && !isOverdue(t) && !isToday(t.dueDate))
       .sort((a, b) => a.dueDate - b.dueDate);
-    const todayPending = myTasks
-      .filter(t => isToday(t.dueDate) && !t.completed)
-      .sort((a, b) => b.priority - a.priority);
-    const todayDone = myTasks
-      .filter(t => isToday(t.dueDate) && t.completed)
-      .sort((a, b) => b.priority - a.priority);
-    const todayTasks = [...overduePending, ...todayPending, ...todayDone].slice(0, 3);
+    const top = [...overduePending, ...todayPending, ...upcoming].slice(0, 3);
 
     const taskList = $('#todayTaskList');
     taskList.innerHTML = '';
-
-    if (todayTasks.length === 0) {
-      taskList.appendChild(
-        el('div', { class: 'empty-state' }, [
-          el('i', { 'data-lucide': 'coffee' }),
-          el('div', {}, 'Sin tareas para hoy. Disfruta el día o adelanta lo de mañana.')
-        ])
-      );
+    if (top.length === 0) {
+      taskList.appendChild(this._emptyState('done', '¡Sin pendientes!', 'Estás al día. Disfrutá el día o adelantá algo 🎉'));
     } else {
-      todayTasks.forEach(task => taskList.appendChild(this._renderTaskItem(task)));
+      top.forEach(task => taskList.appendChild(this._renderTaskItem(task)));
     }
 
-    // Progreso del grupo: tareas del grupo para hoy
-    const groupMembers = Storage.getGroupMembers();
-    const groupTasksToday = allTasks.filter(t => isToday(t.dueDate));
-    const completedToday = groupTasksToday.filter(t => t.completed).length;
-    const totalToday = groupTasksToday.length;
+    // ---------- ACTIVIDAD DEL GRUPO ----------
+    this._renderGroupActivity(allTasks);
 
-    const percent = totalToday > 0 ? (completedToday / totalToday) * 100 : 0;
-    $('#progressBarFill').style.width = `${percent}%`;
-    $('#progressStat').textContent = `${completedToday} / ${totalToday}`;
-
-    if (totalToday === 0) {
-      $('#progressCaption').textContent = 'Tu grupo no tiene tareas para hoy.';
-    } else if (completedToday === totalToday) {
-      $('#progressCaption').textContent = '¡Todos al día! 🎉';
-    } else {
-      const others = totalToday - completedToday;
-      $('#progressCaption').textContent = `${others} ${others === 1 ? 'tarea pendiente' : 'tareas pendientes'} en el grupo.`;
-    }
-
-    // Strip de compañeros (excluye al usuario actual)
-    const peerStrip = $('#peerStrip');
-    peerStrip.innerHTML = '';
-
-    groupMembers
-      .filter(u => !u.isMe)
-      .forEach(peer => {
-        const peerTasks = Storage.getTasksByUser(peer.id);
-        const peerToday = peerTasks.filter(t => isToday(t.dueDate));
-        const peerDone = peerToday.filter(t => t.completed).length;
-        const peerTotal = peerToday.length;
-
-        const card = el('div', { class: 'peer-card' }, [
-          el('div', { class: 'peer-card__header' }, [
-            el('div', {
-              class: 'peer-avatar',
-              style: `background: ${peer.color}`
-            }, peer.initial),
-            el('div', {}, [
-              el('div', { class: 'peer-card__name' }, peer.name.split(' ')[0]),
-              el('div', { class: 'peer-card__status' }, [
-                el('span', { class: 'status-dot' }),
-                peerTotal > 0 ? `${peerDone}/${peerTotal} hoy` : 'sin tareas hoy'
-              ])
-            ])
-          ]),
-          el('div', { class: 'peer-card__progress' }, [
-            el('div', { class: 'progress-bar' }, [
-              el('div', {
-                class: 'progress-bar__fill',
-                style: `width: ${peerTotal > 0 ? (peerDone / peerTotal) * 100 : 0}%`
-              })
-            ])
-          ])
-        ]);
-
-        peerStrip.appendChild(card);
-      });
+    // ---------- MINI CALENDARIO ----------
+    this._renderMiniCal(allTasks);
 
     refreshIcons();
+  },
+
+  // ---- Helpers del dashboard ----
+  _heroStat(icon, value, label) {
+    return el('div', { class: 'hero-stat' }, [
+      el('span', { class: 'hero-stat__icon' }, [el('i', { 'data-lucide': icon })]),
+      el('div', { class: 'hero-stat__text' }, [
+        el('span', { class: 'hero-stat__value' }, String(value)),
+        el('span', { class: 'hero-stat__label' }, label)
+      ])
+    ]);
+  },
+
+  _emptyState(key, title, text) {
+    return el('div', { class: 'empty-state empty-state--rich' }, [
+      el('div', { class: 'empty-illus', html: ILLUS[key] || ILLUS.done }),
+      el('div', { class: 'empty-state__title' }, title),
+      text ? el('div', { class: 'empty-state__text' }, text) : null
+    ]);
+  },
+
+  _renderWeeklyProgress(myPct, groupPct, metas) {
+    const body = $('#weeklyProgressBody');
+    body.innerHTML = '';
+    const bar = (label, pct, cls) => el('div', { class: 'wp-row' }, [
+      el('div', { class: 'wp-row__top' }, [
+        el('span', { class: 'wp-row__label' }, label),
+        el('span', { class: 'wp-row__pct' }, `${pct}%`)
+      ]),
+      el('div', { class: 'wp-bar' }, [
+        el('div', { class: `wp-bar__fill wp-bar__fill--${cls}`, style: `width:${pct}%` })
+      ])
+    ]);
+    body.append(
+      bar('Tu avance', myPct, 'me'),
+      bar('Avance del grupo', groupPct, 'group'),
+      el('div', { class: 'wp-goal' }, [
+        el('i', { 'data-lucide': 'check-circle-2' }),
+        el('span', {}, `${metas} ${metas === 1 ? 'meta cumplida' : 'metas cumplidas'} esta semana`)
+      ])
+    );
+  },
+
+  _renderGroupActivity(allTasks) {
+    const body = $('#groupActivityBody');
+    body.innerHTML = '';
+    const recent = allTasks
+      .filter(t => t.completed && t.completedAt)
+      .sort((a, b) => b.completedAt - a.completedAt)
+      .slice(0, 4);
+    if (recent.length === 0) {
+      body.appendChild(this._emptyState('activity', 'Sin actividad todavía', 'Cuando el grupo complete tareas, las vas a ver acá.'));
+      return;
+    }
+    recent.forEach(t => {
+      const u = Storage.getUser(t.userId) || { name: 'Alguien', initial: '?', color: '#94A3B8' };
+      body.appendChild(el('div', { class: 'activity-row' }, [
+        el('span', { class: 'activity-avatar', style: `background:${u.color}` }, u.initial),
+        el('div', { class: 'activity-row__text' }, [
+          el('div', { class: 'activity-row__main' }, [
+            el('strong', {}, u.name.split(' ')[0]), ' completó ',
+            el('span', { class: 'activity-row__task' }, t.title)
+          ]),
+          el('div', { class: 'activity-row__time' }, relativeTime(t.completedAt))
+        ]),
+        el('span', { class: 'activity-check' }, [el('i', { 'data-lucide': 'check' })])
+      ]));
+    });
+  },
+
+  _renderMiniCal(allTasks) {
+    const cont = $('#miniCal');
+    cont.innerHTML = '';
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = now.getMonth();
+    const label = now.toLocaleDateString('es-CL', { month: 'long', year: 'numeric' });
+    $('#miniCalLabel').textContent = label.charAt(0).toUpperCase() + label.slice(1);
+
+    ['L', 'M', 'M', 'J', 'V', 'S', 'D'].forEach(d =>
+      cont.append(el('div', { class: 'mini-cal__dow' }, d)));
+
+    const first = new Date(year, month, 1);
+    const offset = (first.getDay() + 6) % 7; // lunes = 0
+    for (let i = 0; i < offset; i++) {
+      cont.append(el('div', { class: 'mini-cal__cell mini-cal__cell--empty' }));
+    }
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const taskDays = new Set(
+      allTasks
+        .map(t => new Date(t.dueDate))
+        .filter(d => d.getFullYear() === year && d.getMonth() === month)
+        .map(d => d.getDate())
+    );
+    for (let day = 1; day <= daysInMonth; day++) {
+      const isTd = day === now.getDate();
+      cont.append(el('div', { class: 'mini-cal__cell' + (isTd ? ' mini-cal__cell--today' : '') }, [
+        el('span', {}, String(day)),
+        taskDays.has(day) ? el('span', { class: 'mini-cal__dot' }) : null
+      ]));
+    }
   },
 
   // ============================================
@@ -387,7 +455,7 @@ const Views = {
     // Lista de tareas con detalle completo
     const list = el('div', { class: 'cal-day-zoom__list' });
     if (tasks.length === 0) {
-      list.appendChild(el('div', { class: 'empty-state' }, 'Sin actividades este día.'));
+      list.appendChild(this._emptyState('calendar', 'Día libre', 'No hay tareas para este día.'));
     } else {
       tasks.forEach(t => {
         const author = Storage.getUser(t.userId);
@@ -541,6 +609,10 @@ const Views = {
     const container = $('#groupMembers');
     container.innerHTML = '';
 
+    // El dueño del grupo puede expulsar miembros (menos a sí mismo).
+    const meId = Storage.getState().currentUserId;
+    const iAmOwner = !!(group && group.owner && group.owner === meId);
+
     members.forEach(member => {
       const tasks = Storage.getTasksByUser(member.id);
       const weekTasks = tasks.filter(t => isThisWeek(t.dueDate));
@@ -574,7 +646,18 @@ const Views = {
               member.isMe ? `${member.name} (tú)` : member.name),
             el('div', { class: 'member-card__sub' },
               `${done}/${total} tareas esta semana`)
-          ])
+          ]),
+          (iAmOwner && member.id !== group.owner)
+            ? el('button', {
+                class: 'member-kick',
+                title: `Expulsar a ${member.name}`,
+                'aria-label': `Expulsar a ${member.name}`,
+                onClick: (e) => {
+                  e.stopPropagation();
+                  App.handleKickMember(group.id, member.id, member.name);
+                }
+              }, [el('i', { 'data-lucide': 'user-minus' })])
+            : null
         ]),
         el('div', { class: 'member-card__tasks' },
           toShow.length === 0
@@ -660,7 +743,9 @@ const Views = {
     const section = $('#weeklyRankingSection');
     const list = $('#weeklyRanking');
     if (doneThisWeek.length === 0 || members.length === 0) {
-      section.hidden = true;
+      section.hidden = false;
+      list.innerHTML = '';
+      list.appendChild(this._emptyState('week', 'Semana en blanco', 'Cuando completen tareas esta semana, acá aparece el ranking del grupo.'));
       return;
     }
     // Agrupar por usuario

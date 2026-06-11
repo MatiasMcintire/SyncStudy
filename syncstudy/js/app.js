@@ -65,7 +65,10 @@ const App = {
       const groupSuffix = group ? ` · ${group.name}` : '';
       showToast(`${firstName} agregó: ${task.title}${groupSuffix}`, 'plus-circle');
     });
-    startPeerSimulation(() => Views.renderAll());
+    // (Quitado) startPeerSimulation: era un truco de demo que marcaba tareas de
+    // compañeros como completadas al azar en la vista local, para fingir
+    // actividad cuando los usuarios eran ficticios. Ahora la colaboración es
+    // real (PocketBase realtime), así que ya no se simula nada.
     this._startReminderScheduler();
 
     // Onboarding: si el user no tiene grupos, forzar el modal sin opción a cerrar.
@@ -120,6 +123,59 @@ const App = {
     } finally {
       submitBtn.disabled = false;
     }
+  },
+
+  async handleRegister(e) {
+    e.preventDefault();
+    const name = $('#registerName').value.trim();
+    const email = $('#registerEmail').value.trim();
+    const password = $('#registerPassword').value;
+    const submitBtn = $('#registerSubmit');
+    const errorEl = $('#registerError');
+
+    errorEl.hidden = true;
+
+    if (!name) { errorEl.textContent = 'Escribe tu nombre.'; errorEl.hidden = false; return; }
+    if (password.length < 8) {
+      errorEl.textContent = 'La contraseña debe tener al menos 8 caracteres.';
+      errorEl.hidden = false; return;
+    }
+
+    submitBtn.disabled = true;
+    try {
+      await Storage.register(name, email, password);
+      $('#registerForm').reset();
+      this._startUI();
+    } catch (err) {
+      console.error('Registro falló:', err);
+      const data = err?.response?.data || {};
+      if (data.email) {
+        errorEl.textContent = 'Ese correo ya tiene una cuenta o no es válido.';
+      } else if (data.password) {
+        errorEl.textContent = 'La contraseña no cumple los requisitos (mínimo 8 caracteres).';
+      } else {
+        errorEl.textContent = 'No se pudo crear la cuenta. Revisa los datos e intenta de nuevo.';
+      }
+      errorEl.hidden = false;
+    } finally {
+      submitBtn.disabled = false;
+    }
+  },
+
+  /** Alterna entre el formulario de login y el de registro. */
+  _showAuthMode(mode) {
+    const isRegister = mode === 'register';
+    $('#loginForm').hidden = isRegister;
+    $('#registerForm').hidden = !isRegister;
+    $('#toGoRegister').hidden = isRegister;
+    $('#toGoLogin').hidden = !isRegister;
+    $('#loginTitle').textContent = isRegister ? 'Crea tu cuenta' : 'Inicia sesión';
+    $('#loginSubtitle').textContent = isRegister
+      ? 'Regístrate para empezar a coordinar tu grupo.'
+      : 'Conéctate para ver el calendario de tu grupo.';
+    $('#loginError').hidden = true;
+    $('#registerError').hidden = true;
+    setTimeout(() => $(isRegister ? '#registerName' : '#loginEmail').focus(), 50);
   },
 
   handleLogout() {
@@ -341,6 +397,18 @@ const App = {
     }
   },
 
+  async handleKickMember(groupId, userId, memberName) {
+    if (!confirm(`¿Expulsar a ${memberName} del grupo?\n\nPodrá volver a entrar si tiene el código.`)) return;
+    try {
+      await Storage.kickMember(groupId, userId);
+      Views.renderAll();
+      showToast(`${memberName} fue expulsado del grupo`, 'user-minus');
+    } catch (err) {
+      console.error('kickMember falló:', err);
+      showToast(err.message || 'No se pudo expulsar al miembro', 'alert-circle');
+    }
+  },
+
   async handleCreateGroup() {
     const name = $('#createGroupName').value.trim();
     const submitBtn = $('#createGroupForm button[type="submit"]');
@@ -378,10 +446,31 @@ const App = {
   // ============================================
   // EVENTOS
   // ============================================
+  toggleTheme() {
+    const next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+    if (next === 'dark') document.documentElement.dataset.theme = 'dark';
+    else delete document.documentElement.dataset.theme;
+    try { localStorage.setItem('syncstudy_theme', next); } catch (_) {}
+    this._updateThemeIcon();
+  },
+
+  _updateThemeIcon() {
+    const btn = $('#btnTheme');
+    if (!btn) return;
+    const dark = document.documentElement.dataset.theme === 'dark';
+    btn.innerHTML = `<i data-lucide="${dark ? 'sun' : 'moon'}"></i>`;
+    refreshIcons();
+  },
+
   bindEvents() {
-    // Login / logout
+    // Login / registro / logout
     $('#loginForm').addEventListener('submit', (e) => this.handleLogin(e));
+    $('#registerForm').addEventListener('submit', (e) => this.handleRegister(e));
+    $('#linkToRegister').addEventListener('click', (e) => { e.preventDefault(); this._showAuthMode('register'); });
+    $('#linkToLogin').addEventListener('click', (e) => { e.preventDefault(); this._showAuthMode('login'); });
     $('#btnLogout').addEventListener('click', () => this.handleLogout());
+    $('#btnTheme').addEventListener('click', () => this.toggleTheme());
+    this._updateThemeIcon();
 
     // Perfil de usuario
     const profileTrigger = $('#btnProfile');
