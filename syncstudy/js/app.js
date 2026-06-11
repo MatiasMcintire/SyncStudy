@@ -458,7 +458,7 @@ const App = {
     const btn = $('#btnTheme');
     if (!btn) return;
     const dark = document.documentElement.dataset.theme === 'dark';
-    btn.innerHTML = `<i data-lucide="${dark ? 'sun' : 'moon'}"></i>`;
+    btn.innerHTML = `<i data-lucide="${dark ? 'moon' : 'sun'}"></i>`;
     refreshIcons();
   },
 

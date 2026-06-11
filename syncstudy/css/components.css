@@ -539,3 +539,77 @@
   width: 16px;
   height: 16px;
 }
+
+/* TEMA CLARO · FONDO BLANCO  (modificación de Leo)             */
+
+:root:not([data-theme="dark"]) {
+  --color-bg: #FFFFFF;
+
+  --color-surface: #FFFFFF;
+  --color-bg-elevated: #FFFFFF;
+
+  --color-border: #E5E7F0;
+  --color-border-strong: #D2D5E3;
+
+  --color-bg-soft: #F3F4F9;
+
+  --color-text: #0F172A;        
+  --color-text-soft: #475569;   
+  --color-text-muted: #8A93A6;  
+
+  --shadow-sm:   0 1px 3px rgba(15, 23, 42, 0.06);
+  --shadow-md:   0 6px 16px -4px rgba(15, 23, 42, 0.10);
+  --shadow-card: 0 1px 2px rgba(15, 23, 42, 0.05), 0 10px 28px -12px rgba(15, 23, 42, 0.14);
+}
+
+/* ============================================================ */
+/* TEMA OSCURO · ELEGANTE  (negros y grises, adiós a los morados)*/
+/* ============================================================ */
+[data-theme="dark"] {
+  /* Fondos: negros y grises neutros, SIN tinte azul/violeta */
+  --color-bg:          #0B0B0C;   /* casi negro (cuerpo, barra superior) */
+  --color-bg-soft:     #161618;   /* inputs, chips */
+  --color-bg-elevated: #131315;   /* tarjetas */
+  --color-surface:     #131315;   /* tarjetas y barra lateral */
+  --color-border:      #262629;
+  --color-border-strong:#393A3F;
+
+  /* Texto: blancos y grises neutros, bien legibles */
+  --color-text:       #F4F4F5;
+  --color-text-soft:  #ADAEB3;
+  --color-text-muted: #74757B;
+
+  /* Acento sobrio (grafito en vez del morado).
+     👉 Para darle un toque de color, cambiá SOLO esta línea (ver opciones abajo). */
+  --color-accent:       #565C6B;
+  --color-accent-hover: #6A7183;
+  --color-accent-soft:  #1C1C1F;   /* fondo del menú activo */
+  --color-accent-text:  #E7E8EA;   /* texto del menú activo */
+  --color-secondary:    #6B7280;
+
+  /* El "morado de marca" (botón Nueva tarea, logo, barras, día de hoy) → grafito */
+  --gradient-brand: linear-gradient(135deg, #3C404C 0%, #24262E 100%);
+
+  /* Hero "Buenos días": degradado oscuro neutro (sin morado/magenta) */
+  --gradient-hero: linear-gradient(135deg, #161618 0%, #100F11 55%, #17171A 100%);
+
+  /* Zonas por módulo: grises neutros (sin pasteles de color) */
+  --zone-tasks: #131315; --zone-progress: #131315; --zone-group: #131315;
+  --zone-calendar: #131315; --zone-warn: #1A1813;
+
+  /* Chips de etiquetas: grises neutros */
+  --indigo-100:#232428; --green-100:#1E231F; --violet-100:#232328; --sky-100:#1C2127;
+}
+
+/* Botón "Nueva tarea" en oscuro: grafito elegante, sin el brillo morado */
+[data-theme="dark"] .btn--primary {
+  box-shadow: 0 6px 16px -8px rgba(0, 0, 0, 0.7);
+  border: 1px solid #3A3D47;
+}
+[data-theme="dark"] .btn--primary:hover {
+  box-shadow: 0 8px 20px -8px rgba(0, 0, 0, 0.8);
+}
+
+/* Ícono del menú activo: claro para que se vea bien sobre el fondo oscuro */
+[data-theme="dark"] .nav-item.active svg { color: var(--color-accent-text); }
+
