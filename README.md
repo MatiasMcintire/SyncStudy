@@ -1,274 +1,111 @@
 # SyncStudy
 
-Calendario colaborativo para la organización académica de estudiantes desde los 15 años en adelante.
+**Calendario colaborativo para la organización académica.** Una agenda no resuelve la desorganización de un estudiante porque organizarse en soledad es justo lo que no logra sostener. SyncStudy convierte la organización en una práctica grupal: cada estudiante ve no solo sus tareas, sino las de todo su grupo de curso, con plazos compartidos, comentarios y recordatorios en tiempo real.
+
+![Vista Hoy](syncstudy/design-system/previews/01-hoy-desktop.png)
+
+![Licencia MIT](https://img.shields.io/badge/licencia-MIT-blue) ![PWA](https://img.shields.io/badge/PWA-instalable-5A45FF) ![Sin build](https://img.shields.io/badge/build-ninguno-success) ![Backend](https://img.shields.io/badge/backend-PocketBase-2C3E50)
 
 ---
 
-## Descripción
+## Qué hace
 
-SyncStudy es una aplicación web que permite a estudiantes de un mismo curso compartir, visualizar y dar seguimiento mutuo a sus tareas y plazos académicos. A diferencia de un calendario tradicional, centrado en el usuario individual, SyncStudy convierte la organización en una experiencia social: cada estudiante ve no solo sus propias tareas, sino también el avance de sus compañeros, transformando la planificación solitaria en una práctica grupal sostenida en el tiempo.
+- **Grupos con código de invitación.** Te unís a tu curso con un código de 6 caracteres; sin admin, sin búsqueda pública.
+- **Visibilidad cruzada de tareas.** Cada miembro ve las tareas de los demás. Es la funcionalidad central: lo que separa a SyncStudy de un calendario individual.
+- **Tiempo real.** Cuando un compañero crea una tarea, aparece en tu pantalla sin recargar (suscripción realtime de PocketBase).
+- **Comentarios en tareas**, propias y ajenas, para coordinar de forma asíncrona sin salir a WhatsApp.
+- **Calendario** con vista mes y semana, y zoom in-place de un día cargado.
+- **Vista "Hoy"** como punto de entrada cotidiano: lo de hoy y lo atrasado primero.
+- **Resumen semanal** con ranking del grupo (tareas a tiempo / tarde): convierte la culpa individual en accountability colectiva.
+- **Recordatorios** antes del vencimiento + notificaciones nativas del navegador.
+- **PWA instalable** en celular y escritorio, con soporte offline del app shell.
+- Tema claro/oscuro, perfil editable, multi-grupo, y sonido opcional al completar.
 
-Este repositorio contiene la primera fase del prototipo: una web app funcional con persistencia local, desarrollada como entregable de la asignatura Tecnología y Prototipado.
+<p align="center">
+  <img src="syncstudy/design-system/previews/02-calendario-desktop.png" width="49%" alt="Calendario">
+  <img src="syncstudy/design-system/previews/03-grupo-desktop.png" width="49%" alt="Mi grupo">
+</p>
 
----
+## Stack
 
-## Contexto académico
-
-| Campo | Detalle |
-| :--- | :--- |
-| Institución | Universidad Católica de Temuco |
-| Carrera | Técnico Universitario en Informática |
-| Asignatura | Tecnología y Prototipado |
-| Docente | Walter Noack Pérez |
-| Evaluación | N°2 — Etapa de Prototipado del Design Thinking |
-| Año | 2026 |
-
-### Equipo
-
-- Matías Mcintire — Líder técnico y desarrollo móvil
-- Leonardo Aguilera — Desarrollo web y diseño visual
-- Alfredo San Juan — Backend, modelo de datos y testeo con usuarios
-
----
-
-## Fundamentación del prototipo
-
-El prototipo es la materialización de la idea ganadora seleccionada en la matriz de selección de la Evaluación N°2. La solución responde al siguiente Problem Statement, definido en la etapa de definición:
-
-> "Estudiantes desde los 15 años en adelante en Chile, expuestos a entornos académicos exigentes y a una alta densidad de distracciones digitales, presentan dificultades para sostener en el tiempo hábitos consistentes de organización académica y cotidiana, lo que afecta su rendimiento, bienestar emocional y autoeficacia."
-
-El elemento diferencial de SyncStudy frente a cualquier calendario individual es la visibilidad cruzada entre pares: la organización deja de ser un acto solitario y se convierte en una práctica compartida, abordando directamente el aislamiento detectado en la etapa de empatía como una de las causas estructurales del problema.
-
----
-
-## Alcance de esta fase
-
-Esta versión corresponde a la Fase 1 del prototipo: una web app funcional construida con tecnologías web nativas y persistencia local. Implementa las funcionalidades clasificadas como Must Have en el método MoSCoW aplicado durante la planificación del prototipo.
-
-### Fases posteriores planificadas
-
-| Fase | Alcance | Estado |
-| :---: | :--- | :--- |
-| 1 | Web app funcional con persistencia local | Implementada |
-| 2 | Migración a Firebase con sincronización en tiempo real | Planificada |
-| 3 | Aplicación móvil Flutter conectada al mismo backend | Planificada |
-
-### Funcionalidades implementadas
-
-Las funcionalidades Must Have, derivadas del análisis MoSCoW, están todas operativas en esta fase:
-
-| Código | Funcionalidad | Justificación |
+| Capa | Tecnología | Por qué |
 | :--- | :--- | :--- |
-| F1 | Crear, editar y eliminar tareas con fecha, prioridad y asignatura | Funcionalidad base de cualquier sistema de organización. |
-| F2 | Vista calendario semanal y mensual | Permite la distribución temporal de las tareas para anticipar plazos. |
-| F3 | Vista "Hoy" simplificada con tres tareas prioritarias | Reduce la fricción cognitiva al mostrar solo lo esencial del día. |
-| F5 | Marcar tareas como completadas | Mecanismo de cierre psicológico y alimentación del indicador grupal. |
-| F6 | Visibilidad cruzada de tareas entre compañeros del grupo | Núcleo diferencial de la solución; materializa la dimensión social. |
-| F7 | Grupo de curso pre-cargado | Reduce a cero la fricción inicial de adopción. |
-| F8 | Indicador visual del avance grupal | Hace tangible el componente social y transforma la culpa individual en accountability colectiva. |
-| F10 | Recordatorios visuales por proximidad de fecha | Cumple la expectativa básica de un sistema de organización. |
+| Frontend | HTML + CSS + JavaScript **vanilla**, sin framework ni bundler | Prototipo liviano, sin paso de build, fácil de auditar. |
+| Backend | **PocketBase** (self-hosted) | Realtime por SSE, auth y reglas de acceso con mínima infraestructura. Se descartó Firebase para conservar el control de los datos. |
+| PWA | Service Worker + Web App Manifest | Instalable y con app shell cacheado. |
+| UI | Plus Jakarta Sans · íconos Lucide (pineados) · íconos/manifest propios | — |
+| Audio | WebAudio (generado por código) | Cero assets binarios para el "ding" de tarea completada. |
+| Infra | Binario PocketBase en hardware propio + túnel Cloudflare para demos | — |
 
-Adicionalmente se incluye una vista de resumen semanal, clasificada como Should Have en el MoSCoW, que refuerza positivamente al usuario al final de cada semana.
+## Arquitectura
 
----
-
-## Arquitectura técnica
-
-### Stack
-
-| Capa | Tecnología | Justificación |
-| :--- | :--- | :--- |
-| Estructura | HTML5 semántico | Compatibilidad universal, sin compilación. |
-| Estilo | CSS3 con variables nativas | Sistema de diseño mantenible sin frameworks. |
-| Lógica | JavaScript ES6 en adelante, sin frameworks | Sin dependencias, cero riesgos de incompatibilidad. |
-| Iconografía | Lucide Icons servido vía CDN | Iconos de línea coherentes con la estética del producto. |
-| Tipografía | Inter desde Google Fonts | Tipografía moderna y legible, ampliamente adoptada en productos digitales. |
-| Persistencia | localStorage del navegador | Suficiente para validación del concepto en esta fase. |
-
-### Principios de diseño técnico
-
-El proyecto sigue cuatro principios que guían cada decisión técnica:
-
-1. Capa de persistencia aislada. Todo acceso a localStorage pasa por el módulo `Storage`. Esto permite migrar a Firebase en la Fase 2 modificando un solo archivo.
-2. Renderizado simple sobre rendimiento. El estado se reconstruye desde el storage en cada cambio. Es una decisión deliberada que prioriza la mantenibilidad sobre la optimización prematura.
-3. Datos seed pre-cargados. El evaluador percibe la dimensión social del producto desde el primer acceso, sin requerir configuración manual.
-4. Sin frameworks ni dependencias en runtime. El proyecto se ejecuta directamente desde un navegador moderno.
-
----
-
-## Estructura del repositorio
+El frontend está separado en cuatro módulos sin dependencias circulares:
 
 ```
 syncstudy/
-├── index.html               Punto de entrada de la aplicación
-├── README.md                Este documento
-├── .gitignore               Exclusiones de control de versiones
-│
-├── css/
-│   ├── reset.css            Normalización de estilos base
-│   ├── variables.css        Sistema de diseño (paleta, espaciado, tipografía)
-│   ├── layout.css           Estructura general (sidebar, topbar, grilla)
-│   ├── components.css       Componentes reutilizables
-│   └── views.css            Estilos específicos por vista
-│
+├── index.html          # estructura + overlay de login
+├── css/                # reset · variables (tokens) · layout · components · views
 └── js/
-    ├── data.js              Datos iniciales (usuarios, grupo, tareas)
-    ├── storage.js           Capa de persistencia
-    ├── utils.js             Utilidades (fechas, DOM, notificaciones)
-    ├── views.js             Renderizado de vistas
-    └── app.js               Inicialización, navegación y orquestación
+    ├── storage.js      # ÚNICA capa que habla con PocketBase
+    ├── utils.js        # fechas, DOM helpers, sonidos, toasts, notificaciones
+    ├── views.js        # render de las 4 vistas (no conoce el backend)
+    └── app.js          # orquestación, eventos, modales
 ```
 
-### Modelo de datos
+La decisión de diseño que sostiene todo es la **capa `Storage`**: es lo único que toca el backend. Expone una API **síncrona** al resto de la app (las vistas leen del cache en memoria, igual que cuando se usaba `localStorage`), pero por dentro autentica contra PocketBase, mantiene el estado en un cache y lo actualiza con suscripciones realtime. Las escrituras son optimistas. Gracias a esto, `views.js` y `app.js` no se enteraron del cambio de `localStorage` (Fase 1) a PocketBase (Fase 2): se reescribió un solo archivo.
 
-El estado de la aplicación se compone de tres entidades principales:
+### Modelo de seguridad
 
-```
-users:    { id, name, initial, color, isMe }
-group:    { id, name, members[] }
-tasks:    { id, userId, title, description, dueDate,
-            subject, priority, completed, createdAt }
-```
+Las reglas de acceso viven en el backend, no en el cliente:
 
-Esta estructura es deliberadamente análoga al esquema que se utilizará en Firestore durante la Fase 2, facilitando la migración futura.
+- Solo los **miembros** de un grupo pueden ver/editar ese grupo; solo el **dueño** puede renombrarlo o expulsar.
+- Las tareas y comentarios solo son visibles para miembros del grupo; cada uno edita/borra **lo suyo**.
+- Unirse por código pasa por un **endpoint controlado del servidor** (hook), para que la colección de grupos pueda tener reglas estrictas sin abrir lecturas a terceros.
 
----
+## Cómo correrlo
 
-## Ejecución local
+PocketBase no se versiona (cada quien baja su binario). Hay dos modos:
 
-### Opción 1: Apertura directa
+**Desarrollo** (frontend y backend por separado):
 
-Abrir el archivo `index.html` directamente en un navegador moderno (Chrome, Firefox, Safari o Edge en sus versiones recientes). No se requiere instalación de dependencias.
+```bash
+# Terminal 1 — backend (puerto 8090)
+cd pocketbase && ./pocketbase serve
 
-### Opción 2: Servidor local
-
-Se recomienda servir el proyecto mediante un servidor local para evitar restricciones de seguridad del navegador relacionadas con el protocolo `file://`.
-
-Usando Python 3:
-
-```
-cd syncstudy
-python3 -m http.server 8000
+# Terminal 2 — frontend (puerto 5500)
+cd syncstudy && python3 -m http.server 5500
 ```
 
-Luego, abrir `http://localhost:8000` en el navegador.
+El frontend detecta el puerto `5500` y apunta la API a `127.0.0.1:8090`.
 
-Usando Node.js:
+**Demo / producción** (PocketBase sirve también el frontend, mismo origen):
 
-```
-cd syncstudy
-npx serve
-```
-
-Usando Visual Studio Code: instalar la extensión Live Server y abrir `index.html` con la opción "Open with Live Server".
-
----
-
-## Despliegue en GitHub Pages
-
-Para generar un enlace público accesible desde cualquier dispositivo:
-
-### 1. Inicialización del repositorio
-
-```
-cd syncstudy
-git init
-git add .
-git commit -m "Versión inicial del prototipo SyncStudy"
+```bash
+./deploy-demo.sh          # espeja syncstudy/ en pocketbase/pb_public y arranca PB en 0.0.0.0:8090
 ```
 
-### 2. Conexión con GitHub
+Detalles de despliegue y túnel en [`README-DEPLOY.md`](README-DEPLOY.md). Instrucciones para Windows en [`INSTALAR-WINDOWS.md`](INSTALAR-WINDOWS.md).
 
-Crear un repositorio nuevo en GitHub y enlazar el repositorio local:
+## Roadmap
 
-```
-git remote add origin https://github.com/USUARIO/syncstudy.git
-git branch -M main
-git push -u origin main
-```
+| Fase | Alcance | Estado |
+| :---: | :--- | :--- |
+| 1 | Web app funcional con persistencia local (`localStorage`) | Completada |
+| 2 | Backend real con PocketBase: auth, grupos, comentarios, realtime | Completada |
+| 3 | App móvil en Flutter sobre el mismo backend | Planificada |
 
-### 3. Activación de GitHub Pages
+## Contexto académico
 
-En la interfaz web de GitHub, dentro del repositorio creado, acceder a la sección Settings, seleccionar Pages en el menú lateral, y configurar el origen como rama `main` y carpeta raíz `/`. Tras unos minutos, GitHub publicará el sitio en una URL del formato:
+Proyecto de la asignatura **Tecnología y Prototipado en entornos educativos inclusivos**, Universidad Católica de Temuco (La Araucanía), 2026. Docente: Walter Noack Pérez. Desarrollado siguiendo el proceso de Design Thinking; el prototipo materializa la idea ganadora de la etapa de ideación y responde al Problem Statement:
 
-```
-https://USUARIO.github.io/syncstudy/
-```
+> Los estudiantes desde los 15 años en adelante en Chile presentan dificultades para **sostener** hábitos consistentes de organización de sus actividades académicas y personales.
 
-Esta URL constituye el enlace de demostración para presentaciones, validación con usuarios y entregas académicas.
+### Equipo
 
----
-
-## Datos pre-cargados
-
-La aplicación inicializa con un conjunto de datos coherente con el User Persona Fabián Riquelme, definido en la bitácora del proyecto.
-
-### Usuario principal
-
-Fabián Riquelme, estudiante de la carrera Técnico Universitario en Producción Agropecuaria Sostenible, segundo año. Encarna el patrón del estudiante intermitente identificado como User Persona en la etapa de empatía.
-
-### Grupo de curso
-
-TUPA · 2° año, compuesto por seis estudiantes incluido Fabián. Los compañeros simulados son: Camila Soto, Joaquín Pérez, Valentina Cruz, Diego Morales y Sofía Henríquez.
-
-### Tareas iniciales
-
-Aproximadamente veinte tareas distribuidas entre los seis estudiantes, con distintos estados (pendientes, completadas, próximas a vencer) y fechas relativas a la fecha actual del sistema, de modo que el conjunto siempre se mantenga vigente.
-
----
-
-## Comportamiento dinámico del grupo
-
-Para reforzar la dimensión social durante las sesiones de demostración y validación, la aplicación incluye un mecanismo de simulación de actividad: cada veinticinco segundos, un compañero del grupo completa una tarea pendiente de forma automática, generando una notificación visual.
-
-Este comportamiento no afecta las tareas del usuario actual y puede observarse durante el uso normal de la aplicación. Su propósito es transmitir la sensación de un grupo activo y permitir que el evaluador experimente la naturaleza colaborativa del producto sin requerir múltiples usuarios reales conectados simultáneamente.
-
----
-
-## Reinicio del estado de la aplicación
-
-Durante el desarrollo o la preparación de demostraciones, puede requerirse restablecer la aplicación a su estado inicial. Existen dos métodos.
-
-### Método 1: Consola del navegador
-
-Abrir las herramientas de desarrollo del navegador (tecla F12) y ejecutar en la consola:
-
-```
-Storage.reset();
-Views.renderAll();
-```
-
-### Método 2: Borrado manual del almacenamiento
-
-En las herramientas de desarrollo, acceder a la pestaña Application (Chrome y Edge) o Storage (Firefox), localizar la sección Local Storage, eliminar la clave `syncstudy.v1` y recargar la página.
-
----
-
-## Compatibilidad
-
-La aplicación ha sido diseñada y probada en las versiones recientes de los siguientes navegadores:
-
-- Google Chrome 120 o superior
-- Mozilla Firefox 121 o superior
-- Microsoft Edge 120 o superior
-- Apple Safari 17 o superior
-
-El diseño es responsivo y se adapta a resoluciones desde 360 píxeles de ancho hasta pantallas de alta resolución de escritorio.
-
----
-
-## Próximos pasos
-
-El presente prototipo constituye la primera de tres fases planificadas para el ciclo completo de prototipado. Las tareas pendientes son:
-
-1. Implementación de las funcionalidades clasificadas como Should Have en el MoSCoW.
-2. Integración con Firebase Authentication y Firestore para sincronización en tiempo real entre dispositivos.
-3. Desarrollo de la aplicación móvil en Flutter para Android e iOS, conectada al mismo backend.
-4. Ejecución de sesiones de testeo con cinco usuarios coherentes con el perfil de User Persona definido en la bitácora.
-5. Documentación de hallazgos del testeo y ajustes iterativos al prototipo.
-
----
+- **Matías McIntire** — Líder técnico y desarrollo móvil
+- **Leonardo Aguilera** — Desarrollo web y diseño visual
+- **Alfredo San Juan** — Backend, modelo de datos y testeo con usuarios
 
 ## Licencia
 
-Este proyecto se desarrolla con fines exclusivamente académicos como parte de la evaluación del curso Tecnología y Prototipado en la Universidad Católica de Temuco. Su distribución y uso fuera de este contexto requiere autorización previa del equipo desarrollador.
+[MIT](LICENSE) © 2026 Matías McIntire, Leonardo Aguilera, Alfredo San Juan
