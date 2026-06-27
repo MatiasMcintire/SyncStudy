@@ -32,11 +32,11 @@
   <script src="https://unpkg.com/lucide@1.21.0/dist/umd/lucide.js"></script>
 
   <!-- Hojas de estilo (con cache-bust para evitar versiones obsoletas en dev) -->
-  <link rel="stylesheet" href="css/reset.css?v=28" />
-  <link rel="stylesheet" href="css/variables.css?v=28" />
-  <link rel="stylesheet" href="css/layout.css?v=28" />
-  <link rel="stylesheet" href="css/components.css?v=28" />
-  <link rel="stylesheet" href="css/views.css?v=28" />
+  <link rel="stylesheet" href="css/reset.css?v=31" />
+  <link rel="stylesheet" href="css/variables.css?v=31" />
+  <link rel="stylesheet" href="css/layout.css?v=31" />
+  <link rel="stylesheet" href="css/components.css?v=31" />
+  <link rel="stylesheet" href="css/views.css?v=31" />
 
   <!-- CSS crítico del overlay de login: inline para que no quede a merced del cache. -->
   <style>
@@ -54,6 +54,7 @@
   </style>
 </head>
 <body>
+  <a class="skip-link" href="#mainContent">Saltar al contenido</a>
   <!-- =================================================== -->
   <!-- SIDEBAR DE NAVEGACIÓN -->
   <!-- =================================================== -->
@@ -120,7 +121,7 @@
   <!-- =================================================== -->
   <!-- ÁREA PRINCIPAL -->
   <!-- =================================================== -->
-  <main class="main">
+  <main class="main" id="mainContent">
     <!-- Header global -->
     <header class="topbar">
       <button class="topbar__menu" id="menuToggle" aria-label="Abrir menú">
@@ -213,8 +214,8 @@
           </button>
         </div>
         <div class="calendar__view-switch">
-          <button class="switch-btn active" data-cal-mode="week">Semana</button>
-          <button class="switch-btn" data-cal-mode="month">Mes</button>
+          <button class="switch-btn active" data-cal-mode="week" aria-pressed="true">Semana</button>
+          <button class="switch-btn" data-cal-mode="month" aria-pressed="false">Mes</button>
         </div>
       </div>
 
@@ -462,8 +463,8 @@
         Aún no perteneces a ningún grupo. Crea uno o únete con un código.
       </p>
       <div class="group-modal__tabs" role="tablist">
-        <button type="button" class="group-modal__tab active" data-tab="join" role="tab">Unirse con código</button>
-        <button type="button" class="group-modal__tab" data-tab="create" role="tab">Crear grupo</button>
+        <button type="button" class="group-modal__tab active" data-tab="join" role="tab" aria-selected="true">Unirse con código</button>
+        <button type="button" class="group-modal__tab" data-tab="create" role="tab" aria-selected="false">Crear grupo</button>
       </div>
 
       <form class="modal__form group-modal__form" id="joinGroupForm" data-tab-panel="join">
@@ -576,12 +577,12 @@
         <div class="field">
           <span class="field__label">Color</span>
           <div class="color-swatches" id="profileColorSwatches">
-            <button type="button" class="color-swatch" data-color="#2563eb" style="background:#2563eb" aria-label="Azul"></button>
-            <button type="button" class="color-swatch" data-color="#ec4899" style="background:#ec4899" aria-label="Rosa"></button>
-            <button type="button" class="color-swatch" data-color="#f59e0b" style="background:#f59e0b" aria-label="Naranja"></button>
-            <button type="button" class="color-swatch" data-color="#10b981" style="background:#10b981" aria-label="Verde"></button>
-            <button type="button" class="color-swatch" data-color="#8b5cf6" style="background:#8b5cf6" aria-label="Violeta"></button>
-            <button type="button" class="color-swatch" data-color="#06b6d4" style="background:#06b6d4" aria-label="Turquesa"></button>
+            <button type="button" class="color-swatch" data-color="#2563eb" style="background:#2563eb" aria-label="Azul" aria-pressed="false"></button>
+            <button type="button" class="color-swatch" data-color="#ec4899" style="background:#ec4899" aria-label="Rosa" aria-pressed="false"></button>
+            <button type="button" class="color-swatch" data-color="#f59e0b" style="background:#f59e0b" aria-label="Naranja" aria-pressed="false"></button>
+            <button type="button" class="color-swatch" data-color="#10b981" style="background:#10b981" aria-label="Verde" aria-pressed="false"></button>
+            <button type="button" class="color-swatch" data-color="#8b5cf6" style="background:#8b5cf6" aria-label="Violeta" aria-pressed="false"></button>
+            <button type="button" class="color-swatch" data-color="#06b6d4" style="background:#06b6d4" aria-label="Turquesa" aria-pressed="false"></button>
           </div>
         </div>
 
@@ -633,10 +634,14 @@
           <input type="password" id="loginPassword" required autocomplete="current-password" />
         </label>
         <p class="login-error" id="loginError" hidden></p>
+        <p class="login-feedback" id="resetFeedback" hidden></p>
         <button type="submit" class="btn btn--primary btn--full" id="loginSubmit">
           <i data-lucide="log-in"></i>
           <span>Entrar</span>
         </button>
+        <p class="login-forgot">
+          <a href="#" id="linkForgot">¿Olvidaste tu contraseña?</a>
+        </p>
       </form>
 
       <!-- FORM DE REGISTRO (oculto por defecto; se alterna con el de login) -->
@@ -673,10 +678,10 @@
   <!-- =================================================== -->
   <!-- SDK de PocketBase (cliente HTTP + realtime) -->
   <script src="https://cdn.jsdelivr.net/npm/pocketbase@0.26.9/dist/pocketbase.umd.js"></script>
-  <script src="js/storage.js?v=28"></script>
-  <script src="js/utils.js?v=28"></script>
-  <script src="js/views.js?v=28"></script>
-  <script src="js/app.js?v=28"></script>
+  <script src="js/storage.js?v=31"></script>
+  <script src="js/utils.js?v=31"></script>
+  <script src="js/views.js?v=31"></script>
+  <script src="js/app.js?v=31"></script>
 
   <!-- PWA: registrar el service worker (solo en https o localhost) -->
   <script>

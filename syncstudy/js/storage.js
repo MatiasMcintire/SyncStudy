@@ -99,6 +99,15 @@ const Storage = {
     return this.login(email, password);
   },
 
+  /**
+   * Pide a PocketBase que envíe el correo de reseteo de contraseña.
+   * Requiere SMTP configurado en el server. PocketBase responde igual exista
+   * o no el correo (no filtra cuáles están registrados).
+   */
+  async requestPasswordReset(email) {
+    await this._pb.collection('users').requestPasswordReset(email);
+  },
+
   /** Continúa una sesión ya autenticada: carga estado y se suscribe. */
   async resume() {
     if (!this.isAuthenticated()) return false;

@@ -7,7 +7,7 @@
    - Para actualizar archivos, subí el número de versión (CACHE).
    ============================================================ */
 
-const CACHE = 'syncstudy-v3';
+const CACHE = 'syncstudy-v6';
 
 const APP_SHELL = [
   './',

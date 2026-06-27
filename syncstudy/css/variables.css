@@ -35,7 +35,7 @@
   /* ===== TEXTO ===== */
   --color-text: #0F172A;
   --color-text-soft: #475569;
-  --color-text-muted: #94A3B8;
+  --color-text-muted: #6B7280; /* AA: 4.5:1 sobre canvas y surface (era #94A3B8, 2.4:1) */
 
   /* ===== ACENTO (índigo) ===== */
   --color-accent: #6366F1;
@@ -121,7 +121,7 @@
 
   --color-text: #F1F3F9;
   --color-text-soft: #AEB4C2;
-  --color-text-muted: #6B7280;
+  --color-text-muted: #868D9C; /* AA: 5.2:1 sobre surface oscura (era #6B7280, 3.6:1) */
 
   --color-accent-soft: #1F2236;
   --color-accent-text: #A5B4FC;

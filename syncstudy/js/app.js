@@ -125,6 +125,30 @@ const App = {
     }
   },
 
+  // Reseteo de contraseña: usa el correo escrito en el form de login. Mostramos
+  // siempre el mismo mensaje neutro (no revelar si el correo existe).
+  async handleForgotPassword() {
+    const email = $('#loginEmail').value.trim();
+    const errorEl = $('#loginError');
+    const feedback = $('#resetFeedback');
+    errorEl.hidden = true;
+    feedback.hidden = true;
+    if (!email) {
+      errorEl.textContent = 'Escribí tu correo arriba y volvé a tocar el enlace.';
+      errorEl.hidden = false;
+      $('#loginEmail').focus();
+      return;
+    }
+    try {
+      await Storage.requestPasswordReset(email);
+    } catch (err) {
+      console.error('Reset de contraseña falló:', err);
+    }
+    // Mensaje neutro pase lo que pase (no filtrar correos registrados).
+    feedback.textContent = 'Si el correo está registrado, te enviamos un enlace para restablecer la contraseña.';
+    feedback.hidden = false;
+  },
+
   async handleRegister(e) {
     e.preventDefault();
     const name = $('#registerName').value.trim();
@@ -175,6 +199,7 @@ const App = {
       : 'Conéctate para ver el calendario de tu grupo.';
     $('#loginError').hidden = true;
     $('#registerError').hidden = true;
+    $('#resetFeedback').hidden = true;
     setTimeout(() => $(isRegister ? '#registerName' : '#loginEmail').focus(), 50);
   },
 
@@ -205,6 +230,7 @@ const App = {
     this._refreshProfilePreview();
 
     const modal = $('#profileModal');
+    this._modalOpener = document.activeElement;
     modal.classList.add('open');
     modal.setAttribute('aria-hidden', 'false');
     refreshIcons();
@@ -215,12 +241,15 @@ const App = {
     const modal = $('#profileModal');
     modal.classList.remove('open');
     modal.setAttribute('aria-hidden', 'true');
+    this._restoreOpener();
   },
 
   _selectProfileColor(color) {
     $('#profileForm').dataset.color = color;
     $$('#profileColorSwatches .color-swatch').forEach(sw => {
-      sw.classList.toggle('selected', sw.dataset.color === color);
+      const on = sw.dataset.color === color;
+      sw.classList.toggle('selected', on);
+      sw.setAttribute('aria-pressed', String(on));
     });
     this._refreshProfilePreview();
   },
@@ -342,6 +371,7 @@ const App = {
 
   openGroupModal({ forced = false } = {}) {
     const modal = $('#groupModal');
+    this._modalOpener = document.activeElement;
     modal.classList.add('open');
     modal.setAttribute('aria-hidden', 'false');
     $('#groupModalIntro').hidden = !forced;
@@ -364,11 +394,14 @@ const App = {
     const modal = $('#groupModal');
     modal.classList.remove('open');
     modal.setAttribute('aria-hidden', 'true');
+    this._restoreOpener();
   },
 
   _switchGroupTab(tab) {
     $$('#groupModal .group-modal__tab').forEach(t => {
-      t.classList.toggle('active', t.dataset.tab === tab);
+      const on = t.dataset.tab === tab;
+      t.classList.toggle('active', on);
+      t.setAttribute('aria-selected', String(on));
     });
     $$('#groupModal [data-tab-panel]').forEach(p => {
       p.hidden = p.dataset.tabPanel !== tab;
@@ -468,6 +501,7 @@ const App = {
     $('#registerForm').addEventListener('submit', (e) => this.handleRegister(e));
     $('#linkToRegister').addEventListener('click', (e) => { e.preventDefault(); this._showAuthMode('register'); });
     $('#linkToLogin').addEventListener('click', (e) => { e.preventDefault(); this._showAuthMode('login'); });
+    $('#linkForgot').addEventListener('click', (e) => { e.preventDefault(); this.handleForgotPassword(); });
     $('#btnLogout').addEventListener('click', () => this.handleLogout());
     $('#btnTheme').addEventListener('click', () => this.toggleTheme());
     this._updateThemeIcon();
@@ -605,8 +639,9 @@ const App = {
     // Cambio entre semana / mes
     $$('[data-cal-mode]').forEach(btn => {
       btn.addEventListener('click', () => {
-        $$('[data-cal-mode]').forEach(b => b.classList.remove('active'));
+        $$('[data-cal-mode]').forEach(b => { b.classList.remove('active'); b.setAttribute('aria-pressed', 'false'); });
         btn.classList.add('active');
+        btn.setAttribute('aria-pressed', 'true');
         calendarState.mode = btn.dataset.calMode;
         calendarState.anchorDate = new Date();
         calendarState.zoomDate = null;
@@ -629,13 +664,15 @@ const App = {
       });
     });
 
-    // Cerrar cualquier modal/overlay abierto con Escape
+    // Cerrar cualquier modal/overlay abierto con Escape + focus-trap con Tab
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') {
         this.closeTaskModal();
         this.closeProfileModal();
+        this.closeGroupModal();
         if (calendarState.zoomDate) this.closeDayZoom();
       }
+      this._trapTab(e);
     });
 
     // Click fuera del modal cierra
@@ -656,7 +693,10 @@ const App = {
 
     // Activar nav
     $$('.nav-item').forEach(btn => {
-      btn.classList.toggle('active', btn.dataset.view === viewName);
+      const on = btn.dataset.view === viewName;
+      btn.classList.toggle('active', on);
+      if (on) btn.setAttribute('aria-current', 'page');
+      else btn.removeAttribute('aria-current');
     });
 
     // Mostrar vista
@@ -796,6 +836,7 @@ const App = {
       $('#btnDeleteTask').hidden = false;
     }
 
+    this._modalOpener = document.activeElement;
     modal.classList.add('open');
     modal.setAttribute('aria-hidden', 'false');
     setTimeout(() => {
@@ -809,10 +850,37 @@ const App = {
     const modal = $('#taskModal');
     modal.classList.remove('open');
     modal.setAttribute('aria-hidden', 'true');
+    this._restoreOpener();
     this._currentTaskModalId = null;
     // Reset: la próxima apertura debe tener form visible y readonly oculto.
     $('#taskForm').hidden = false;
     $('#taskReadonlyView').hidden = true;
+  },
+
+  // Devuelve el foco al elemento que abrió el modal (a11y: no perder el lugar).
+  _restoreOpener() {
+    const el = this._modalOpener;
+    this._modalOpener = null;
+    if (el && document.contains(el)) el.focus();
+  },
+
+  // Mantiene el Tab dentro del modal abierto (focus-trap). Un solo handler
+  // para los tres modales: opera sobre el .modal.open que haya visible.
+  _trapTab(e) {
+    if (e.key !== 'Tab') return;
+    const panel = document.querySelector('.modal.open .modal__panel');
+    if (!panel) return;
+    const focusables = [...panel.querySelectorAll(
+      'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+    )].filter(el => !el.hidden && el.offsetParent !== null);
+    if (!focusables.length) return;
+    const first = focusables[0];
+    const last = focusables[focusables.length - 1];
+    if (e.shiftKey && document.activeElement === first) {
+      e.preventDefault(); last.focus();
+    } else if (!e.shiftKey && document.activeElement === last) {
+      e.preventDefault(); first.focus();
+    }
   },
 
   // ============================================
