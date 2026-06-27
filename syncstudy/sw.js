@@ -7,7 +7,7 @@
    - Para actualizar archivos, subí el número de versión (CACHE).
    ============================================================ */
 
-const CACHE = 'syncstudy-v2';
+const CACHE = 'syncstudy-v3';
 
 const APP_SHELL = [
   './',
@@ -18,11 +18,11 @@ const APP_SHELL = [
   'css/layout.css',
   'css/components.css',
   'css/views.css',
-  'js/data.js',
   'js/storage.js',
   'js/utils.js',
   'js/views.js',
   'js/app.js',
+  'icons/favicon-64.png',
   'icons/icon-192.png',
   'icons/icon-512.png',
   'icons/icon-512-maskable.png',

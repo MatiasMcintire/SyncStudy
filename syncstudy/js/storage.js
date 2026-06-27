@@ -91,8 +91,9 @@ const Storage = {
       passwordConfirm: password,
       name: clean,
       initial,
-      color,
-      emailVisibility: true
+      color
+      // emailVisibility queda en false (default): la app nunca muestra el
+      // email de otros usuarios, así no se filtran correos a cualquier logueado.
     });
     // Reutiliza login(): autentica, carga estado y se suscribe en realtime.
     return this.login(email, password);
@@ -578,15 +579,6 @@ const Storage = {
     }
     await this._pb.collection('comments').delete(commentId);
     this._state.comments = this._state.comments.filter(x => x.id !== commentId);
-  },
-
-  /** Toggle local (cache) sin escribir en PB. Lo usa la simulación de peers,
-   *  que no es dueña de las tareas que toca. */
-  _localToggleTask(id) {
-    const i = this._state.tasks.findIndex(t => t.id === id);
-    if (i === -1) return null;
-    this._state.tasks[i] = { ...this._state.tasks[i], completed: !this._state.tasks[i].completed };
-    return this._state.tasks[i];
   },
 
   /** Para devs: cierra sesión y recarga la app. */
