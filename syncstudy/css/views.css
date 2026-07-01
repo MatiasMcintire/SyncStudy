@@ -1124,13 +1124,42 @@
 }
 
 @media (max-width: 768px) {
+  /* Vista Semana en móvil: agenda vertical, no columnas colapsadas.
+     Cada día es una fila compacta (día+número a la izquierda, tareas al lado). */
   .calendar-week {
     grid-template-columns: 1fr;
+    border-top: none;
   }
 
   .cal-day {
-    min-height: auto;
+    min-height: 0;
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 12px 2px;
+    border-left: none;
+    border-top: 1px solid var(--color-border);
   }
+  .cal-day:first-child { border-top: none; }
+  .cal-day:last-child { border-right: none; }
+
+  .cal-day__header {
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+    width: 62px;
+    flex-shrink: 0;
+    padding-bottom: 0;
+    padding-top: 2px;
+  }
+  .cal-day__name { font-size: 11px; }
+  .cal-day__number { width: auto; height: auto; font-size: 17px; padding: 2px 5px; }
+  .cal-day.today .cal-day__number { padding: 2px 6px; }
+
+  .cal-day__tasks { flex: 1; min-width: 0; gap: 6px; }
+
+  /* Días sin tareas: se ven tenues para no pesar en la lista. */
+  .cal-day:not(:has(.cal-task)) { opacity: 0.5; }
 
   .cal-month__day {
     min-height: 60px;
@@ -1138,7 +1167,9 @@
   }
 
   .cal-month__day-number {
-    font-size: var(--font-size-xs);
+    font-size: 12px;
+    width: 22px;
+    height: 22px;
   }
 }
 
