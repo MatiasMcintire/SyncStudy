@@ -149,11 +149,56 @@ const App = {
     feedback.hidden = false;
   },
 
+  // Confirmador de contraseña asistido (vanilla, sin libs): tiñe cada carácter
+  // según coincida, hace shake si te pasás de largo y marca el match en verde.
+  _initPasswordConfirm() {
+    const pw = $('#registerPassword');
+    const cf = $('#registerPassword2');
+    const guide = $('#pwConfirmGuide');
+    if (!pw || !cf || !guide) return;
+
+    const render = () => {
+      const p = pw.value, c = cf.value;
+      guide.innerHTML = '';
+      for (let i = 0; i < p.length; i++) {
+        const status = c[i] == null ? '' : (c[i] === p[i] ? ' is-ok' : ' is-bad');
+        const cell = el('span', { class: 'pwconfirm__cell' + status });
+        cell.appendChild(el('span', { class: 'pwconfirm__dot' }));
+        guide.appendChild(cell);
+      }
+      const match = p.length > 0 && c === p;
+      guide.classList.toggle('is-match', match);
+      cf.classList.toggle('is-match', match);
+    };
+
+    const shake = () => {
+      guide.classList.remove('is-shake');
+      void guide.offsetWidth; // reinicia la animación
+      guide.classList.add('is-shake');
+    };
+
+    cf.addEventListener('input', () => {
+      // No se puede tipear más allá del largo de la contraseña: recorta + shake.
+      if (cf.value.length > pw.value.length) {
+        cf.value = cf.value.slice(0, pw.value.length);
+        shake();
+      }
+      render();
+    });
+    pw.addEventListener('input', () => {
+      if (cf.value.length > pw.value.length) cf.value = cf.value.slice(0, pw.value.length);
+      render();
+    });
+
+    this._renderPwConfirm = render; // para limpiar la guía tras un reset
+  },
+
   async handleRegister(e) {
     e.preventDefault();
     const name = $('#registerName').value.trim();
     const email = $('#registerEmail').value.trim();
     const password = $('#registerPassword').value;
+    const confirm = $('#registerPassword2').value;
     const submitBtn = $('#registerSubmit');
     const errorEl = $('#registerError');
 
@@ -164,11 +209,16 @@ const App = {
       errorEl.textContent = 'La contraseña debe tener al menos 8 caracteres.';
       errorEl.hidden = false; return;
     }
+    if (confirm !== password) {
+      errorEl.textContent = 'Las contraseñas no coinciden.';
+      errorEl.hidden = false; return;
+    }
 
     submitBtn.disabled = true;
     try {
       await Storage.register(name, email, password);
       $('#registerForm').reset();
+      this._renderPwConfirm?.();
       this._startUI();
     } catch (err) {
       console.error('Registro falló:', err);
@@ -499,6 +549,7 @@ const App = {
     // Login / registro / logout
     $('#loginForm').addEventListener('submit', (e) => this.handleLogin(e));
     $('#registerForm').addEventListener('submit', (e) => this.handleRegister(e));
+    this._initPasswordConfirm();
     $('#linkToRegister').addEventListener('click', (e) => { e.preventDefault(); this._showAuthMode('register'); });
     $('#linkToLogin').addEventListener('click', (e) => { e.preventDefault(); this._showAuthMode('login'); });
     $('#linkForgot').addEventListener('click', (e) => { e.preventDefault(); this.handleForgotPassword(); });
@@ -586,8 +637,9 @@ const App = {
       if (e.target.classList.contains('modal__backdrop')) this.closeGroupModal();
     });
 
-    // Copiar invite code al portapapeles
+    // Copiar invite code al portapapeles (vista Grupo + bloque del Hoy)
     $('#groupInviteCode').addEventListener('click', () => this.handleCopyInviteCode());
+    $('#hoyInviteCode').addEventListener('click', () => this.handleCopyInviteCode());
 
     // Navegación entre vistas
     $$('.nav-item').forEach(btn => {
@@ -615,6 +667,11 @@ const App = {
     $('#taskForm').addEventListener('submit', (e) => {
       e.preventDefault();
       this.handleSaveTask();
+    });
+
+    // Selector Tarea / Nota
+    $$('#taskTypeSwitch .type-switch__btn').forEach(btn => {
+      btn.addEventListener('click', () => this._setTaskType(btn.dataset.type));
     });
 
     // Botón eliminar
@@ -662,6 +719,16 @@ const App = {
           $('#sidebar').classList.remove('open');
         }
       });
+    });
+
+    // Cerrar el sidebar al tocar fuera de él (móvil). Los usuarios esperan que
+    // un tap en cualquier lado cierre el menú, no tener que elegir una opción.
+    document.addEventListener('click', (e) => {
+      const sb = $('#sidebar');
+      if (window.innerWidth <= 768 && sb.classList.contains('open')
+          && !sb.contains(e.target) && !$('#menuToggle').contains(e.target)) {
+        sb.classList.remove('open');
+      }
     });
 
     // Cerrar cualquier modal/overlay abierto con Escape + focus-trap con Tab
@@ -723,6 +790,28 @@ const App = {
   // ============================================
   // MODAL DE TAREA
   // ============================================
+  // Cambia el modal entre "tarea" y "nota". Una nota no tiene prioridad ni
+  // asignatura ni se completa: solo título, fecha y descripción.
+  _setTaskType(type) {
+    const t = type === 'note' ? 'note' : 'task';
+    $('#taskType').value = t;
+    $$('#taskTypeSwitch .type-switch__btn').forEach(btn => {
+      const on = btn.dataset.type === t;
+      btn.classList.toggle('is-active', on);
+      btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+    });
+    const isNote = t === 'note';
+    $('#taskPriorityField').hidden = isNote;
+    $('#taskSubjectField').hidden = isNote;
+    // El toggle de completada solo aplica a tareas en edición.
+    $('#taskCompleteToggle').hidden = isNote || this._taskModalMode !== 'edit';
+    const noun = isNote ? 'nota' : 'tarea';
+    $('#modalTitle').textContent = (this._taskModalMode === 'edit' ? 'Editar ' : 'Nueva ') + noun;
+    $('#taskTitle').placeholder = isNote
+      ? 'Ej: hoy vence la factura'
+      : 'Ej: Estudiar para prueba de Suelos';
+  },
+
   openTaskModal(taskId = null) {
     const modal = $('#taskModal');
     const form = $('#taskForm');
@@ -746,7 +835,7 @@ const App = {
         // Modo edición: form visible, vista readonly oculta.
         readonlyView.hidden = true;
         form.hidden = false;
-        title.textContent = 'Editar tarea';
+        this._taskModalMode = 'edit';
         $('#taskId').value = task.id;
         $('#taskTitle').value = task.title;
         $('#taskDescription').value = task.description || '';
@@ -760,6 +849,7 @@ const App = {
         $('#taskCompleteHint').textContent = isOverdue(task)
           ? 'Esta tarea está vencida; quedará marcada como "completada tarde".'
           : 'Cierra el ciclo de la tarea.';
+        this._setTaskType(task.type || 'task');
       } else {
         // Tarea de un compañero: solo título + meta + comentarios. Sin form.
         form.hidden = true;
@@ -779,7 +869,7 @@ const App = {
           meta.appendChild(el('span', { class: 'task-readonly__meta-item' }, [
             el('div', {
               class: 'user-avatar task-comment__avatar',
-              style: `background: ${author.color}; width:20px; height:20px; font-size:11px;`
+              style: `background: ${avatarColor(author)}; width:20px; height:20px; font-size:11px;`
             }, author.initial),
             el('span', { class: 'task-readonly__author' }, author.name)
           ]));
@@ -823,12 +913,13 @@ const App = {
       // Crear tarea nueva: form visible, sin comentarios (la tarea aún no existe).
       readonlyView.hidden = true;
       form.hidden = false;
-      title.textContent = 'Nueva tarea';
+      this._taskModalMode = 'new';
       $('#taskDate').value = formatDateForInput(new Date());
       $('#btnDeleteTask').hidden = true;
       $('#taskCompleteToggle').hidden = true;
       $('#taskCompleted').checked = false;
       commentsSection.hidden = true;
+      this._setTaskType('task');
     }
 
     // Si es edición de tarea propia, el botón Eliminar está visible.
@@ -899,6 +990,8 @@ const App = {
     }
 
     const id = $('#taskId').value;
+    const type = $('#taskType').value === 'note' ? 'note' : 'task';
+    const isNote = type === 'note';
     const title = $('#taskTitle').value.trim();
     const description = $('#taskDescription').value.trim();
     const dateStr = $('#taskDate').value;
@@ -914,20 +1007,21 @@ const App = {
     }
 
     const dueDate = parseDateFromInput(dateStr);
+    const noun = isNote ? 'Nota' : 'Tarea';
 
     try {
       if (id) {
-        // El checkbox del modal permite completar/reabrir desde acá.
-        const completed = $('#taskCompleted').checked;
+        // El checkbox del modal permite completar/reabrir desde acá (solo tareas).
+        const completed = !isNote && $('#taskCompleted').checked;
         const before = Storage.getTask(id);
-        Storage.updateTask(id, { title, description, dueDate, subject, priority, completed });
+        Storage.updateTask(id, { title, description, dueDate, subject, priority, type, completed });
         if (completed && before && !before.completed) {
           playCompleteSound();
         }
-        showToast('Tarea actualizada', 'check');
+        showToast(`${noun} actualizada`, 'check');
       } else {
-        await Storage.createTask({ title, description, dueDate, subject, priority });
-        showToast('Tarea creada', 'check');
+        await Storage.createTask({ title, description, dueDate, subject, priority, type });
+        showToast(`${noun} creada`, 'check');
       }
     } catch (err) {
       console.error('Guardar tarea falló:', err);
@@ -992,7 +1086,7 @@ const App = {
       list.appendChild(el('article', { class: 'task-comment' }, [
         el('div', {
           class: 'user-avatar task-comment__avatar',
-          style: `background: ${author ? author.color : '#9ca3af'}`
+          style: `background: ${avatarColor(author)}`
         }, author ? author.initial : '?'),
         el('div', { class: 'task-comment__body' }, [
           el('header', { class: 'task-comment__header' }, headerChildren),
@@ -1089,7 +1183,19 @@ const App = {
   // ============================================
   // ZOOM DE DÍA (vista Mes)
   // ============================================
+  _syncCalModeSwitch() {
+    $$('[data-cal-mode]').forEach(b => {
+      const on = b.dataset.calMode === calendarState.mode;
+      b.classList.toggle('active', on);
+      b.setAttribute('aria-pressed', on ? 'true' : 'false');
+    });
+  },
+
   openDayZoom(day) {
+    // El zoom se pinta dentro del modo "mes"; recordamos de dónde vino
+    // (semana o mes) para volver ahí al cerrar.
+    calendarState.zoomReturnMode = calendarState.mode;
+    calendarState.mode = 'month';
     calendarState.zoomDate = new Date(day.getFullYear(), day.getMonth(), day.getDate());
     Views._hideCalTooltip();
     Views.renderCalendar();
@@ -1097,9 +1203,11 @@ const App = {
 
   closeDayZoom() {
     if (!calendarState.zoomDate) return;
-    // Volver al mes que contenía ese día.
+    // Volver al modo y fecha desde donde se abrió el día.
     calendarState.anchorDate = new Date(calendarState.zoomDate);
     calendarState.zoomDate = null;
+    calendarState.mode = calendarState.zoomReturnMode || 'month';
+    this._syncCalModeSwitch();
     Views.renderCalendar();
   }
 };

@@ -39,70 +39,46 @@ const Views = {
   renderToday() {
     const user = Storage.getCurrentUser();
     if (!user) return;
-    const allTasks = Storage.getAllTasks();
-    const members = Storage.getGroupMembers();
-    const peers = members.filter(u => !u.isMe);
     const myTasks = Storage.getTasksByUser(user.id);
+    const members = Storage.getGroupMembers();
+    const group = Storage.getGroup();
 
-    // ---------- HERO ----------
-    $('#todayGreeting').textContent = `${getGreeting()}, ${user.name.split(' ')[0]} 👋`;
-    $('#todaySubtitle').textContent = peers.length
-      ? `Tu grupo está sincronizado · ${members.length} integrantes.`
-      : 'Creá o unite a un grupo para empezar a coordinar.';
+    // ---------- SALUDO + FECHA ----------
+    const now = new Date();
+    const fecha = now.toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'long' });
+    $('#todayDate').textContent = fecha.charAt(0).toUpperCase() + fecha.slice(1);
+    $('#todayGreeting').textContent = `${getGreeting()}, ${user.name.split(' ')[0]}.`;
 
-    const myPending = myTasks.filter(t => !t.completed).length;
-    const weekTasks = allTasks.filter(t => isThisWeek(t.dueDate));
-    const weekDone = weekTasks.filter(t => t.completed).length;
-    const groupPct = weekTasks.length ? Math.round((weekDone / weekTasks.length) * 100) : 0;
+    // ---------- STRIP DE SEMANA ----------
+    this._renderWeekStrip(now);
 
-    const stats = $('#heroStats');
-    stats.innerHTML = '';
-    stats.append(
-      this._heroStat('users', peers.length, peers.length === 1 ? 'compañero' : 'compañeros'),
-      this._heroStat('list-todo', myPending, myPending === 1 ? 'tarea pendiente' : 'tareas pendientes'),
-      this._heroStat('trending-up', `${groupPct}%`, 'avance semanal')
-    );
-
-    // ---------- PROGRESO SEMANAL ----------
-    const myWeek = myTasks.filter(t => isThisWeek(t.dueDate));
-    const myWeekDone = myWeek.filter(t => t.completed).length;
-    const myPct = myWeek.length ? Math.round((myWeekDone / myWeek.length) * 100) : 0;
-    this._renderWeeklyProgress(myPct, groupPct, weekDone);
-
-    // ---------- TAREAS PRIORITARIAS (top 3: atrasadas → hoy → próximas) ----------
-    const overduePending = myTasks.filter(t => isOverdue(t)).sort((a, b) => a.dueDate - b.dueDate);
-    const todayPending = myTasks.filter(t => isToday(t.dueDate) && !t.completed).sort((a, b) => b.priority - a.priority);
-    const upcoming = myTasks
+    // ---------- HOY: tareas (atrasadas → hoy → próximas) + notas de hoy ----------
+    // Las notas/recordatorios no son pendientes: no se completan ni cuentan acá.
+    const tasksOnly = myTasks.filter(t => t.type !== 'note');
+    const overdue = tasksOnly.filter(t => isOverdue(t)).sort((a, b) => a.dueDate - b.dueDate);
+    const todayPending = tasksOnly.filter(t => isToday(t.dueDate) && !t.completed).sort((a, b) => b.priority - a.priority);
+    const upcoming = tasksOnly
       .filter(t => !t.completed && !isOverdue(t) && !isToday(t.dueDate))
       .sort((a, b) => a.dueDate - b.dueDate);
-    const top = [...overduePending, ...todayPending, ...upcoming].slice(0, 3);
+    const top = [...overdue, ...todayPending, ...upcoming].slice(0, 5);
+    const pending = tasksOnly.filter(t => !t.completed).length;
+    $('#todayCount').textContent = `Pendientes (${pending})`;
 
-    const taskList = $('#todayTaskList');
-    taskList.innerHTML = '';
-    if (top.length === 0) {
-      taskList.appendChild(this._emptyState('done', '¡Sin pendientes!', 'Estás al día. Disfrutá el día o adelantá algo 🎉'));
+    const todayNotes = myTasks.filter(t => t.type === 'note' && isToday(t.dueDate));
+
+    const list = $('#todayTaskList');
+    list.innerHTML = '';
+    if (top.length === 0 && todayNotes.length === 0) {
+      list.appendChild(this._emptyState('done', '¡Sin pendientes!', 'Estás al día.'));
     } else {
-      top.forEach(task => taskList.appendChild(this._renderTaskItem(task)));
+      top.forEach(task => list.appendChild(this._renderHoyTaskRow(task)));
+      todayNotes.forEach(note => list.appendChild(this._renderHoyNoteRow(note)));
     }
 
-    // ---------- ACTIVIDAD DEL GRUPO ----------
-    this._renderGroupActivity(allTasks);
-
-    // ---------- MINI CALENDARIO ----------
-    this._renderMiniCal(allTasks);
+    // ---------- TU GRUPO ----------
+    this._renderHoyGroup(group, members);
 
     refreshIcons();
-  },
-
-  // ---- Helpers del dashboard ----
-  _heroStat(icon, value, label) {
-    return el('div', { class: 'hero-stat' }, [
-      el('span', { class: 'hero-stat__icon' }, [el('i', { 'data-lucide': icon })]),
-      el('div', { class: 'hero-stat__text' }, [
-        el('span', { class: 'hero-stat__value' }, String(value)),
-        el('span', { class: 'hero-stat__label' }, label)
-      ])
-    ]);
   },
 
   _emptyState(key, title, text) {
@@ -113,86 +89,97 @@ const Views = {
     ]);
   },
 
-  _renderWeeklyProgress(myPct, groupPct, metas) {
-    const body = $('#weeklyProgressBody');
-    body.innerHTML = '';
-    const bar = (label, pct, cls) => el('div', { class: 'wp-row' }, [
-      el('div', { class: 'wp-row__top' }, [
-        el('span', { class: 'wp-row__label' }, label),
-        el('span', { class: 'wp-row__pct' }, `${pct}%`)
+  // Strip de los 7 días de la semana actual (lunes→domingo), hoy resaltado.
+  _renderWeekStrip(now) {
+    const strip = $('#weekStrip');
+    strip.innerHTML = '';
+    const dows = ['L', 'M', 'M', 'J', 'V', 'S', 'D'];
+    const monday = startOfWeek(now);
+    for (let i = 0; i < 7; i++) {
+      const d = addDays(monday, i);
+      strip.append(el('div', { class: 'weekstrip__day' + (isSameDay(d, now) ? ' is-today' : '') }, [
+        el('span', { class: 'weekstrip__dow' }, dows[i]),
+        el('span', { class: 'weekstrip__num' }, String(d.getDate()).padStart(2, '0'))
+      ]));
+    }
+  },
+
+  // Fila de tarea reglada (editorial): barra de prioridad + checkbox + cuerpo + estado.
+  _renderHoyTaskRow(task) {
+    const done = task.completed;
+    const overdue = isOverdue(task);
+    const pcls = priorityClass(task.priority);
+    const subject = (task.subject && task.subject !== 'General') ? task.subject : 'Tarea';
+
+    const check = el('button', {
+      class: 'rl-item__check' + (done ? ' is-checked' : ''),
+      'aria-label': done ? 'Marcar como pendiente' : 'Completar tarea',
+      onClick: (e) => { e.stopPropagation(); App.handleToggleTask(task.id); }
+    }, done ? [el('i', { 'data-lucide': 'check' })] : []);
+
+    let right;
+    if (done) right = el('span', { class: 'rl-item__tag rl-item__tag--done' }, 'Hecho');
+    else if (overdue) right = el('span', { class: 'rl-item__tag rl-item__tag--overdue' }, 'Vencida');
+    else right = el('span', { class: 'rl-item__when' }, relativeDate(task.dueDate));
+
+    const row = el('div', {
+      class: 'rl-item' + (done ? ' is-done' : ''),
+      dataset: { taskId: task.id }
+    }, [
+      el('span', { class: `rl-item__bar rl-item__bar--${pcls}` }),
+      check,
+      el('div', { class: 'rl-item__body' }, [
+        el('div', { class: 'rl-item__title' }, task.title),
+        el('div', { class: 'rl-item__meta' }, subject)
       ]),
-      el('div', { class: 'wp-bar' }, [
-        el('div', { class: `wp-bar__fill wp-bar__fill--${cls}`, style: `width:${pct}%` })
-      ])
+      right
     ]);
-    body.append(
-      bar('Tu avance', myPct, 'me'),
-      bar('Avance del grupo', groupPct, 'group'),
-      el('div', { class: 'wp-goal' }, [
-        el('i', { 'data-lucide': 'check-circle-2' }),
-        el('span', {}, `${metas} ${metas === 1 ? 'meta cumplida' : 'metas cumplidas'} esta semana`)
-      ])
-    );
+    row.addEventListener('click', () => App.openTaskModal(task.id));
+    return row;
   },
 
-  _renderGroupActivity(allTasks) {
-    const body = $('#groupActivityBody');
-    body.innerHTML = '';
-    const recent = allTasks
-      .filter(t => t.completed && t.completedAt)
-      .sort((a, b) => b.completedAt - a.completedAt)
-      .slice(0, 4);
-    if (recent.length === 0) {
-      body.appendChild(this._emptyState('activity', 'Sin actividad todavía', 'Cuando el grupo complete tareas, las vas a ver acá.'));
-      return;
-    }
-    recent.forEach(t => {
-      const u = Storage.getUser(t.userId) || { name: 'Alguien', initial: '?', color: '#94A3B8' };
-      body.appendChild(el('div', { class: 'activity-row' }, [
-        el('span', { class: 'activity-avatar', style: `background:${u.color}` }, u.initial),
-        el('div', { class: 'activity-row__text' }, [
-          el('div', { class: 'activity-row__main' }, [
-            el('strong', {}, u.name.split(' ')[0]), ' completó ',
-            el('span', { class: 'activity-row__task' }, t.title)
-          ]),
-          el('div', { class: 'activity-row__time' }, relativeTime(t.completedAt))
-        ]),
-        el('span', { class: 'activity-check' }, [el('i', { 'data-lucide': 'check' })])
-      ]));
-    });
+  // Fila de nota/recordatorio (editorial): sin checkbox, marcador en vez de check.
+  _renderHoyNoteRow(note) {
+    const label = (note.subject && note.subject !== 'General') ? note.subject : 'Recordatorio';
+    const row = el('div', {
+      class: 'rl-item rl-item--note',
+      dataset: { taskId: note.id }
+    }, [
+      el('span', { class: 'rl-item__bar rl-item__bar--note' }),
+      el('span', { class: 'rl-item__dot', 'aria-hidden': 'true' }, [el('i', { 'data-lucide': 'bookmark' })]),
+      el('div', { class: 'rl-item__body' }, [
+        el('div', { class: 'rl-item__title' }, note.title),
+        el('div', { class: 'rl-item__meta' }, label)
+      ]),
+      el('span', { class: 'rl-item__tag rl-item__tag--note' }, 'Nota')
+    ]);
+    row.addEventListener('click', () => App.openTaskModal(note.id));
+    return row;
   },
 
-  _renderMiniCal(allTasks) {
-    const cont = $('#miniCal');
-    cont.innerHTML = '';
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = now.getMonth();
-    const label = now.toLocaleDateString('es-CL', { month: 'long', year: 'numeric' });
-    $('#miniCalLabel').textContent = label.charAt(0).toUpperCase() + label.slice(1);
+  // Bloque "Tu grupo": nombre, avatares, código de invitación y progreso.
+  _renderHoyGroup(group, members) {
+    const section = $('#hoyGroupSection');
+    if (!group) { section.hidden = true; return; }
+    section.hidden = false;
 
-    ['L', 'M', 'M', 'J', 'V', 'S', 'D'].forEach(d =>
-      cont.append(el('div', { class: 'mini-cal__dow' }, d)));
+    $('#groupCount').textContent = `Miembros (${members.length})`;
+    $('#hoyGroupName').textContent = group.name;
 
-    const first = new Date(year, month, 1);
-    const offset = (first.getDay() + 6) % 7; // lunes = 0
-    for (let i = 0; i < offset; i++) {
-      cont.append(el('div', { class: 'mini-cal__cell mini-cal__cell--empty' }));
-    }
-    const daysInMonth = new Date(year, month + 1, 0).getDate();
-    const taskDays = new Set(
-      allTasks
-        .map(t => new Date(t.dueDate))
-        .filter(d => d.getFullYear() === year && d.getMonth() === month)
-        .map(d => d.getDate())
-    );
-    for (let day = 1; day <= daysInMonth; day++) {
-      const isTd = day === now.getDate();
-      cont.append(el('div', { class: 'mini-cal__cell' + (isTd ? ' mini-cal__cell--today' : '') }, [
-        el('span', {}, String(day)),
-        taskDays.has(day) ? el('span', { class: 'mini-cal__dot' }) : null
-      ]));
-    }
+    const stack = $('#hoyGroupAvatars');
+    stack.innerHTML = '';
+    members.slice(0, 4).forEach(m =>
+      stack.append(el('span', { class: 'av', style: `background:${avatarColor(m)}` }, m.initial)));
+    if (members.length > 4) stack.append(el('span', { class: 'av av--more' }, `+${members.length - 4}`));
+
+    $('#hoyInviteCode').textContent = group.inviteCode || '——————';
+
+    // Progreso del grupo: tareas de la semana (hechas / total). Sin %, sin "faltan".
+    const week = Storage.getAllTasks().filter(t => t.type !== 'note' && isThisWeek(t.dueDate));
+    const done = week.filter(t => t.completed).length;
+    $('#hoyProgDone').textContent = done;
+    $('#hoyProgTotal').textContent = week.length;
+    $('#hoyProgFill').style.width = (week.length ? (done / week.length) * 100 : 0) + '%';
   },
 
   // ============================================
@@ -307,17 +294,22 @@ const Views = {
       const chips = visible.map(t => {
         const author = Storage.getUser(t.userId);
         const authorName = author ? author.name : '?';
+        const isNote = t.type === 'note';
+        const marker = isNote
+          ? el('span', { class: 'cal-task__note-mark', 'aria-hidden': 'true' },
+              [el('i', { 'data-lucide': 'bookmark' })])
+          : el('span', {
+              class: 'cal-task__avatar',
+              style: `background: ${avatarColor(author)}`
+            }, author ? author.initial : '?');
         return el('div', {
-          class: `cal-task ${priorityClass(t.priority)}`
+          class: 'cal-task ' + (isNote ? 'cal-task--note' : priorityClass(t.priority))
             + (t.completed ? ' completed' : '')
             + (author && author.isMe ? ' is-mine' : ''),
-          onClick: () => App.openTaskModal(t.id),
+          onClick: (e) => { e.stopPropagation(); App.openTaskModal(t.id); },
           title: `${t.title} · ${authorName}`
         }, [
-          el('span', {
-            class: 'cal-task__avatar',
-            style: `background: ${author ? author.color : '#9ca3af'}`
-          }, author ? author.initial : '?'),
+          marker,
           el('span', { class: 'cal-task__title' }, t.title),
           this._renderCommentBadge(t.id)
         ]);
@@ -331,7 +323,10 @@ const Views = {
       }
 
       const dayEl = el('div', {
-        class: 'cal-day' + (isToday(day.getTime()) ? ' today' : '')
+        class: 'cal-day' + (isToday(day.getTime()) ? ' today' : ''),
+        // Click en la columna → zoom del día (igual que en la vista Mes).
+        onClick: () => App.openDayZoom(day),
+        title: 'Ver el día'
       }, [
         el('div', { class: 'cal-day__header' }, [
           el('span', { class: 'cal-day__name' }, WEEKDAYS_SHORT[day.getDay()]),
@@ -389,9 +384,12 @@ const Views = {
 
       const dots = dayTasks.slice(0, 4).map(t => {
         const author = Storage.getUser(t.userId);
+        if (t.type === 'note') {
+          return el('span', { class: 'cal-month__dot cal-month__dot--note' });
+        }
         return el('span', {
           class: 'cal-month__dot' + (t.completed ? ' completed' : ''),
-          style: `background: ${author ? author.color : '#9ca3af'}`
+          style: `background: ${avatarColor(author)}`
         });
       });
 
@@ -442,7 +440,7 @@ const Views = {
         onClick: () => App.closeDayZoom()
       }, [
         el('i', { 'data-lucide': 'arrow-left' }),
-        el('span', {}, 'Volver al mes')
+        el('span', {}, calendarState.zoomReturnMode === 'week' ? 'Volver a la semana' : 'Volver al mes')
       ]),
       el('div', { class: 'cal-day-zoom__title-block' }, [
         el('h3', { class: 'cal-day-zoom__title' }, formatLongDate(day)),
@@ -469,23 +467,29 @@ const Views = {
   },
 
   _renderZoomTaskItem(t, author, group) {
+    const isNote = t.type === 'note';
+    const marker = isNote
+      ? el('div', { class: 'cal-day-zoom__avatar cal-day-zoom__avatar--note', 'aria-hidden': 'true' },
+          [el('i', { 'data-lucide': 'bookmark' })])
+      : el('div', {
+          class: 'cal-day-zoom__avatar',
+          style: `background: ${avatarColor(author)}`
+        }, author ? author.initial : '?');
+
+    const tag = isNote
+      ? el('span', { class: 'cal-day-zoom__tag-note' }, 'Nota')
+      : el('span', { class: `priority-pill priority-pill--${priorityClass(t.priority)}` }, priorityLabel(t.priority));
+
     return el('article', {
-      class: `cal-day-zoom__task ${priorityClass(t.priority)}`
+      class: 'cal-day-zoom__task ' + (isNote ? 'cal-day-zoom__task--note' : priorityClass(t.priority))
         + (t.completed ? ' completed' : ''),
       onClick: () => App.openTaskModal(t.id)
     }, [
-      // Avatar del autor
-      el('div', {
-        class: 'cal-day-zoom__avatar',
-        style: `background: ${author ? author.color : '#9ca3af'}`
-      }, author ? author.initial : '?'),
-      // Bloque de contenido
+      marker,
       el('div', { class: 'cal-day-zoom__content' }, [
         el('div', { class: 'cal-day-zoom__top' }, [
           el('h4', { class: 'cal-day-zoom__task-title' }, t.title),
-          el('span', {
-            class: `priority-pill priority-pill--${priorityClass(t.priority)}`
-          }, priorityLabel(t.priority))
+          tag
         ]),
         el('div', { class: 'cal-day-zoom__meta' }, [
           el('span', { class: 'cal-day-zoom__author' },
@@ -495,8 +499,10 @@ const Views = {
                 el('i', { 'data-lucide': 'users' }), group.name
               ])
             : null,
-          el('span', { class: 'cal-day-zoom__status' + (t.completed ? ' completed' : '') },
-            t.completed ? '✓ Completada' : 'Pendiente'),
+          isNote
+            ? null
+            : el('span', { class: 'cal-day-zoom__status' + (t.completed ? ' completed' : '') },
+                t.completed ? '✓ Completada' : 'Pendiente'),
           this._renderCommentBadge(t.id)
         ]),
         t.description
@@ -520,13 +526,13 @@ const Views = {
       const ul = el('ul', { class: 'cal-tooltip__list' });
       tasks.slice(0, 8).forEach(t => {
         const author = Storage.getUser(t.userId);
+        const bullet = t.type === 'note'
+          ? el('span', { class: 'cal-tooltip__bullet cal-tooltip__bullet--note' })
+          : el('span', { class: 'cal-tooltip__bullet', style: `background: ${avatarColor(author)}` });
         ul.appendChild(el('li', {
           class: 'cal-tooltip__item' + (t.completed ? ' completed' : '')
         }, [
-          el('span', {
-            class: 'cal-tooltip__bullet',
-            style: `background: ${author ? author.color : '#9ca3af'}`
-          }),
+          bullet,
           el('span', { class: 'cal-tooltip__title' }, t.title)
         ]));
       });
@@ -614,7 +620,8 @@ const Views = {
     const iAmOwner = !!(group && group.owner && group.owner === meId);
 
     members.forEach(member => {
-      const tasks = Storage.getTasksByUser(member.id);
+      // Las notas no son tareas: fuera de los porcentajes y listas de progreso.
+      const tasks = Storage.getTasksByUser(member.id).filter(t => t.type !== 'note');
       const weekTasks = tasks.filter(t => isThisWeek(t.dueDate));
       const done = weekTasks.filter(t => t.completed).length;
       const total = weekTasks.length;
@@ -639,7 +646,7 @@ const Views = {
         el('div', { class: 'member-card__header' }, [
           el('div', {
             class: 'peer-avatar',
-            style: `background: ${member.color}`
+            style: `background: ${avatarColor(member)}`
           }, member.initial),
           el('div', {}, [
             el('div', { class: 'member-card__name' },
@@ -709,30 +716,45 @@ const Views = {
     const myOnTime = myDone.filter(t => !isCompletedLate(t));
     const myLate = myDone.filter(t => isCompletedLate(t));
 
-    // Tarjetas principales
-    $('#weeklyDoneCount').textContent = myDone.length;
-    $('#weeklyOnTime').textContent = myOnTime.length;
-    $('#weeklyLate').textContent = myLate.length;
-    $('#weeklyOnTimeBreakdown').hidden = myDone.length === 0;
-
     const activeDays = new Set();
     myDone.forEach(t => {
       const d = new Date(t.completedAt);
       activeDays.add(`${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`);
     });
-    $('#weeklyActiveDays').textContent = activeDays.size;
-    $('#weeklyGroupDone').textContent = doneThisWeek.length;
+    const done = myDone.length;
+    const groupDone = doneThisWeek.length;
 
-    // Mensaje contextual basado en la mezcla a tiempo / tarde
-    const message = $('#weeklyMessage');
-    if (myDone.length === 0) {
-      message.textContent = 'Esta semana aún está en blanco. Hoy es buen día para arrancar.';
-    } else if (myLate.length === 0) {
-      message.textContent = `¡${myDone.length} ${myDone.length === 1 ? 'tarea' : 'tareas'} y todas a tiempo! Tu grupo va contigo en este ritmo.`;
-    } else if (myOnTime.length >= myLate.length) {
-      message.textContent = `${myDone.length} cerradas (${myOnTime.length} a tiempo). Sigue así.`;
+    // Dateline de la semana (a modo de antetítulo de periódico).
+    const wkStart = startOfWeek(new Date());
+    const wkEnd = addDays(wkStart, 6);
+    $('#weeklyKicker').textContent = `${formatDateShort(wkStart)} – ${formatDateShort(wkEnd)}`;
+
+    // Titular + bajada: los números van en prosa, no en cuadros.
+    const headline = $('#weeklyHeadline');
+    const deck = $('#weeklyDeck');
+    if (done === 0) {
+      headline.textContent = 'Tu semana recién empieza.';
+      deck.textContent = 'Cuando cierres tu primera tarea, va a aparecer acá.';
     } else {
-      message.textContent = `${myDone.length} cerradas, varias fuera de plazo. Una idea: prueba marcar la fecha apenas la conozcas.`;
+      headline.textContent = `Cerraste ${done} ${done === 1 ? 'tarea' : 'tareas'} esta semana.`;
+      const parts = [];
+      if (myLate.length === 0) parts.push('Todas a tiempo.');
+      else if (myOnTime.length === 0) parts.push('Todas fuera de plazo.');
+      else parts.push(`${myOnTime.length} a tiempo, ${myLate.length} fuera de plazo.`);
+      parts.push(`Avanzaste ${activeDays.size} de 7 días.`);
+      if (groupDone > done) parts.push(`El grupo cerró ${groupDone} en total.`);
+      deck.textContent = parts.join(' ');
+    }
+
+    // Nota al margen: solo cuando hay algo que sugerir (tareas fuera de plazo).
+    const message = $('#weeklyMessage');
+    if (done > 0 && myLate.length > 0) {
+      message.textContent = myOnTime.length >= myLate.length
+        ? 'Vas bien. Cierra en fecha lo que puedas para no arrastrar.'
+        : 'Varias se cerraron fuera de plazo. Prueba marcar la fecha apenas la conozcas.';
+      message.hidden = false;
+    } else {
+      message.hidden = true;
     }
 
     this._renderWeeklyRanking(doneThisWeek, members, meId);
@@ -780,7 +802,7 @@ const Views = {
         el('span', { class: 'weekly__ranking-pos' }, `#${idx + 1}`),
         el('div', {
           class: 'weekly__ranking-avatar',
-          style: `background: ${entry.user.color}`
+          style: `background: ${avatarColor(entry.user)}`
         }, entry.user.initial),
         el('div', { class: 'weekly__ranking-info' }, [
           el('div', { class: 'weekly__ranking-name' },
@@ -817,7 +839,7 @@ const Views = {
         el('span', { class: 'weekly__late-author' }, [
           el('span', {
             class: 'weekly__late-avatar',
-            style: `background: ${author ? author.color : '#9ca3af'}`
+            style: `background: ${avatarColor(author)}`
           }, author ? author.initial : '?'),
           el('span', {}, author
             ? (author.id === meId ? 'Tú' : author.name.split(' ')[0])
@@ -853,7 +875,7 @@ const Views = {
     const group = Storage.getGroup();
     const myGroups = Storage.getMyGroups();
     $('#sidebarAvatar').textContent = user.initial;
-    $('#sidebarAvatar').style.background = user.color;
+    $('#sidebarAvatar').style.background = avatarColor(user);
     $('#sidebarUserName').textContent = user.name;
     $('#sidebarUserGroup').textContent = group
       ? group.name

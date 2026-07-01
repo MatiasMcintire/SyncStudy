@@ -83,7 +83,7 @@ const Storage = {
   async register(name, email, password) {
     const clean = (name || '').trim();
     const initial = (clean[0] || '?').toUpperCase();
-    const palette = ['#2563eb', '#10b981', '#f59e0b', '#ec4899', '#8b5cf6', '#06b6d4', '#ef4444'];
+    const palette = ['#4F6076', '#5E7D5A', '#B17A3C', '#9A5E81', '#74608C', '#4E7C80', '#A8473B'];
     const color = palette[Math.floor(Math.random() * palette.length)];
     await this._pb.collection('users').create({
       email,
@@ -398,6 +398,7 @@ const Storage = {
       dueDate: taskData.dueDate,
       subject: taskData.subject || 'General',
       priority: taskData.priority || 2,
+      type: taskData.type || 'task',
       completed: false
     });
     const real = await this._pb.collection('tasks').create(payload);
@@ -555,7 +556,7 @@ const Storage = {
     const dayAfterStart = addDays(new Date(todayStart), 2).getTime();
     let overdue = 0, today = 0, tomorrow = 0;
     for (const t of this._state.tasks) {
-      if (t.userId !== me || t.completed) continue;
+      if (t.userId !== me || t.completed || t.type === 'note') continue;
       if (t.dueDate < todayStart) overdue++;
       else if (t.dueDate < tomorrowStart) today++;
       else if (t.dueDate < dayAfterStart) tomorrow++;
@@ -621,6 +622,7 @@ const Storage = {
       dueDate: new Date(t.dueDate).getTime(),
       subject: t.subject || 'General',
       priority: t.priority || 2,
+      type: t.type || 'task',
       completed: !!t.completed,
       createdAt: new Date(t.created).getTime(),
       updatedAt: new Date(t.updated || t.created).getTime(),
@@ -637,6 +639,7 @@ const Storage = {
       dueDate: new Date(t.dueDate).toISOString().replace('T', ' '),
       subject: t.subject || 'General',
       priority: t.priority || 2,
+      type: t.type || 'task',
       completed: !!t.completed
     };
     // PocketBase espera 'YYYY-MM-DD HH:mm:ss.sssZ' o cadena vacía para null.

@@ -1,64 +1,77 @@
 /* ============================================ */
-/* SISTEMA DE DISEÑO — SyncStudy 2.0             */
-/* "Estudiar mejor, juntos." · índigo + violeta  */
+/* SISTEMA DE DISEÑO — SyncStudy · Editorial      */
+/* "Agenda académica" · tinta sobre papel         */
+/* Paleta mapeada sobre los tokens semánticos:    */
+/* cambiar acá repinta toda la app.               */
 /* ============================================ */
 
 :root {
-  /* ===== ESCALAS DE MARCA ===== */
-  --indigo-50:#EEF2FF;  --indigo-100:#E0E7FF; --indigo-200:#C7D2FE;
-  --indigo-500:#6366F1; --indigo-600:#4F46E5; --indigo-700:#4338CA;
-  --violet-50:#F5F3FF;  --violet-100:#EDE9FE; --violet-500:#8B5CF6; --violet-600:#7C3AED;
-  --green-50:#F0FDF4;   --green-100:#DCFCE7;  --green-500:#22C55E; --green-600:#16A34A;
-  --amber-50:#FFFBEB;   --amber-100:#FEF3C7;  --amber-500:#F59E0B; --amber-600:#D97706;
-  --rose-50:#FFF1F2;    --rose-100:#FFE4E6;   --rose-500:#EF4444; --rose-600:#DC2626;
-  --sky-50:#EFF6FF;     --sky-100:#DBEAFE;    --sky-500:#3B82F6;
+  /* ===== TINTA / PAPEL / MARCADOR (escala base) ===== */
+  --paper:   #FBF9F3;   --paper2:  #F3EEE3;
+  --ink:     #211F1B;   --ink2:    #5E594F;
+  --marker:  #C7D24A;   --marker-soft: rgba(201,212,75,0.45);
+  --red-ink: #B23A2E;
 
-  /* ===== GRADIENTES ===== */
-  --gradient-brand: linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%);
-  --gradient-hero:  linear-gradient(135deg, #EEF2FF 0%, #F5F3FF 55%, #FFF1F2 100%);
+  /* Grilla de fondo (la firma del rediseño) */
+  --grid: rgba(33,31,27,0.05);
+  --grid-size: 24px;
 
-  /* ===== ZONAS PASTEL POR MÓDULO (espíritu Zoho, no copia) ===== */
-  --zone-tasks:    var(--indigo-50);
-  --zone-progress: var(--green-50);
-  --zone-group:    var(--violet-50);
-  --zone-calendar: var(--sky-50);
-  --zone-warn:     var(--amber-50);
+  /* ===== COMPAT: escalas de marca viejas, re-mapeadas a tinta/papel.
+     Referencian var() para adaptarse solas a claro/oscuro.
+     (módulos/categorías quedan monocromos; afinar por miembro más adelante) ===== */
+  --indigo-100: var(--paper2); --indigo-200: var(--color-border-strong);
+  --indigo-500: var(--marker); --indigo-600: var(--ink);
+  --violet-100: var(--paper2); --violet-600: var(--ink);
+  --sky-100:    var(--paper2); --sky-500:    var(--ink);
+  --green-100:  var(--color-success-soft);
+  --green-500:  var(--color-success); --green-600: var(--color-success);
 
-  /* ===== NEUTROS (slate — NO blanco puro) ===== */
-  --color-bg: #F7F8FC;            /* CANVAS off-white (main, topbar, body) */
-  --color-bg-soft: #F1F3FA;       /* fills suaves: inputs, chips */
-  --color-bg-elevated: #FFFFFF;   /* tarjetas */
-  --color-surface: #FFFFFF;       /* tarjetas */
-  --color-border: #E9EAF2;
-  --color-border-strong: #D7D9E6;
+  /* ===== GRADIENTES (planos: editorial no usa degradados de marca) ===== */
+  --gradient-brand: linear-gradient(135deg, #211F1B 0%, #3D382F 100%);
+  --gradient-hero:  linear-gradient(135deg, #FBF9F3 0%, #F3EEE3 100%);
+
+  /* ===== ZONAS POR MÓDULO (antes pastel; ahora papel) ===== */
+  --zone-tasks:    var(--paper2);
+  --zone-progress: var(--paper2);
+  --zone-group:    var(--paper2);
+  --zone-calendar: var(--paper2);
+  --zone-warn:     rgba(201,212,75,0.12);
+
+  /* ===== NEUTROS ===== */
+  --color-bg: var(--paper);            /* canvas papel */
+  --color-bg-soft: var(--paper2);      /* fills suaves: inputs, chips */
+  --color-bg-elevated: var(--paper);   /* tarjetas: planas sobre el papel */
+  --color-surface: var(--paper);
+  --color-border: rgba(33,31,27,0.13);        /* regla fina */
+  --color-border-strong: rgba(33,31,27,0.30); /* regla marcada */
 
   /* ===== TEXTO ===== */
-  --color-text: #0F172A;
-  --color-text-soft: #475569;
-  --color-text-muted: #6B7280; /* AA: 4.5:1 sobre canvas y surface (era #94A3B8, 2.4:1) */
+  --color-text: var(--ink);
+  --color-text-soft: var(--ink2);
+  --color-text-muted: var(--ink2);     /* dos tonos de tinta, ambos ≥4.5:1 sobre papel */
 
-  /* ===== ACENTO (índigo) ===== */
-  --color-accent: #6366F1;
-  --color-accent-hover: #4F46E5;
-  --color-accent-soft: #EEF2FF;
-  --color-accent-text: #4338CA;
-  --color-secondary: #8B5CF6;
+  /* ===== ACENTO (la tinta es el color primario) ===== */
+  --color-accent: var(--ink);
+  --color-accent-hover: #3D382F;
+  --color-accent-soft: var(--paper2);
+  --color-accent-text: var(--ink);     /* links: se distinguen por subrayado, no por color */
+  --color-secondary: var(--marker);    /* marcador para destacados/indicadores */
 
-  /* ===== ESTADOS ===== */
-  --color-success: #22C55E;
-  --color-success-soft: #F0FDF4;
-  --color-warning: #F59E0B;
-  --color-warning-soft: #FFFBEB;
-  --color-danger: #EF4444;
-  --color-danger-soft: #FFF1F2;
+  /* ===== ESTADOS (desaturados, tono tinta) ===== */
+  --color-success: #5F7A2E;
+  --color-success-soft: #EEF0DC;
+  --color-warning: #A8741C;
+  --color-warning-soft: #F3EAD3;
+  --color-danger: var(--red-ink);
+  --color-danger-soft: #F3E1DB;
 
   /* ===== PRIORIDADES ===== */
-  --color-priority-high: #EF4444;
-  --color-priority-high-soft: #FFE4E6;
-  --color-priority-med: #F59E0B;
-  --color-priority-med-soft: #FEF3C7;
-  --color-priority-low: #22C55E;
-  --color-priority-low-soft: #DCFCE7;
+  --color-priority-high: var(--red-ink);
+  --color-priority-high-soft: #F3E1DB;
+  --color-priority-med: #A8741C;
+  --color-priority-med-soft: #F3EAD3;
+  --color-priority-low: #5F7A2E;
+  --color-priority-low-soft: #EEF0DC;
 
   /* ===== ESPACIADO ===== */
   --space-1: 4px;  --space-2: 8px;  --space-3: 12px; --space-4: 16px;
@@ -66,23 +79,23 @@
   --space-12: 48px; --space-16: 64px;
   --space-section: 32px;
 
-  /* ===== RADIOS (más redondeado = premium) ===== */
-  --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 16px;
-  --radius-xl: 20px;
-  --radius-card: 20px;
-  --radius-2xl: 24px;
-  --radius-full: 999px;
+  /* ===== RADIOS (editorial = esquinas casi rectas) ===== */
+  --radius-sm: 3px;
+  --radius-md: 4px;
+  --radius-lg: 5px;
+  --radius-xl: 6px;
+  --radius-card: 5px;
+  --radius-2xl: 6px;
+  --radius-full: 999px;   /* avatares/pills siguen redondos */
 
-  /* ===== SOMBRAS (tinte índigo, no negro) ===== */
-  --shadow-xs: 0 1px 2px rgba(79, 70, 229, 0.05);
-  --shadow-sm: 0 1px 3px rgba(79, 70, 229, 0.07), 0 1px 2px rgba(15, 23, 42, 0.04);
-  --shadow-md: 0 4px 12px -2px rgba(79, 70, 229, 0.10);
-  --shadow-lg: 0 12px 28px -8px rgba(79, 70, 229, 0.14);
-  --shadow-xl: 0 24px 48px -12px rgba(79, 70, 229, 0.20);
-  --shadow-card: 0 1px 2px rgba(79, 70, 229, 0.04), 0 8px 24px -10px rgba(79, 70, 229, 0.12);
-  --shadow-pop: 0 12px 32px -8px rgba(79, 70, 229, 0.18);
+  /* ===== SOMBRAS (casi nulas: delineamos con reglas, no con blur) ===== */
+  --shadow-xs: 0 1px 2px rgba(33,31,27,0.05);
+  --shadow-sm: 0 1px 2px rgba(33,31,27,0.07);
+  --shadow-md: 0 1px 3px rgba(33,31,27,0.08);
+  --shadow-lg: 0 2px 8px rgba(33,31,27,0.10);
+  --shadow-xl: 0 6px 20px rgba(33,31,27,0.14);   /* modales/popovers: levantan del backdrop */
+  --shadow-card: 0 1px 2px rgba(33,31,27,0.06);
+  --shadow-pop: 0 6px 20px rgba(33,31,27,0.14);
 
   /* ===== TRANSICIONES ===== */
   --transition-fast: 120ms cubic-bezier(0.4, 0, 0.2, 1);
@@ -90,10 +103,11 @@
   --transition-slow: 300ms cubic-bezier(0.4, 0, 0.2, 1);
 
   /* ===== TIPOGRAFÍA ===== */
-  --font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-family:  'Hanken Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-heading: 'Fraunces', Georgia, 'Times New Roman', serif;  /* serif display: headings */
   --font-size-xs: 11px;
   --font-size-sm: 13px;
-  --font-size-base: 15px;   /* subió de 14 → 15 */
+  --font-size-base: 15px;
   --font-size-md: 16px;
   --font-size-lg: 18px;
   --font-size-xl: 22px;
@@ -108,45 +122,59 @@
 }
 
 /* ============================================ */
-/* MODO OSCURO — override de neutros            */
-/* (la marca índigo/violeta se mantiene)        */
+/* MODO OSCURO — papel pizarra, tinta crema      */
 /* ============================================ */
 [data-theme="dark"] {
-  --color-bg: #0F1117;
-  --color-bg-soft: #1A1D27;
-  --color-bg-elevated: #181B24;
-  --color-surface: #181B24;
-  --color-border: #272B38;
-  --color-border-strong: #353A4A;
+  --paper:   #22211D;   --paper2:  #2B2A24;
+  --ink:     #ECE7DB;   --ink2:    #A8A192;
+  --marker:  #B7C24A;   --marker-soft: rgba(183,194,74,0.30);
+  --red-ink: #E8806E;
+  --grid: rgba(236,231,219,0.05);
 
-  --color-text: #F1F3F9;
-  --color-text-soft: #AEB4C2;
-  --color-text-muted: #868D9C; /* AA: 5.2:1 sobre surface oscura (era #6B7280, 3.6:1) */
+  --color-bg: var(--paper);
+  --color-bg-soft: var(--paper2);
+  --color-bg-elevated: var(--paper);
+  --color-surface: var(--paper);
+  --color-border: rgba(236,231,219,0.15);
+  --color-border-strong: rgba(236,231,219,0.30);
 
-  --color-accent-soft: #1F2236;
-  --color-accent-text: #A5B4FC;
+  --color-text: var(--ink);
+  --color-text-soft: var(--ink2);
+  --color-text-muted: var(--ink2);
 
-  --color-success-soft: #0E2A1C;
+  --color-accent: var(--ink);          /* en oscuro: botón primario crema, texto tinta */
+  --color-accent-hover: #FFFDF6;
+  --color-accent-soft: var(--paper2);
+  --color-accent-text: var(--ink);
+  --color-secondary: var(--marker);
+
+  --color-success: #9DB05A;
+  --color-success-soft: #232818;
+  --color-warning: #D2A24A;
   --color-warning-soft: #2A2410;
-  --color-danger-soft: #2A1416;
-  --color-priority-high-soft: #2A1416;
+  --color-danger: var(--red-ink);
+  --color-danger-soft: #2E1F1B;
+  --color-priority-high: var(--red-ink);
+  --color-priority-high-soft: #2E1F1B;
+  --color-priority-med: #D2A24A;
   --color-priority-med-soft: #2A2410;
-  --color-priority-low-soft: #0E2A1C;
+  --color-priority-low: #9DB05A;
+  --color-priority-low-soft: #232818;
 
-  --indigo-100: #2A2F49;  --green-100: #16301F;  --violet-100: #261C3A;  --sky-100: #15263A;
+  --zone-tasks:    var(--paper2);
+  --zone-progress: var(--paper2);
+  --zone-group:    var(--paper2);
+  --zone-calendar: var(--paper2);
+  --zone-warn:     rgba(183,194,74,0.12);
 
-  --zone-tasks:    #181B2C;
-  --zone-progress: #10231A;
-  --zone-group:    #1E1830;
-  --zone-calendar: #111E2E;
-  --zone-warn:     #241F12;
+  --gradient-brand: linear-gradient(135deg, #ECE7DB 0%, #C9C3B4 100%);
+  --gradient-hero:  linear-gradient(135deg, #22211D 0%, #2B2A24 100%);
 
-  --gradient-hero: linear-gradient(135deg, #1A1D2E 0%, #221B30 55%, #2A1620 100%);
-
-  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.4);
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4);
-  --shadow-md: 0 4px 12px -2px rgba(0, 0, 0, 0.5);
-  --shadow-lg: 0 12px 28px -8px rgba(0, 0, 0, 0.55);
-  --shadow-xl: 0 24px 48px -12px rgba(0, 0, 0, 0.6);
-  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px -10px rgba(0, 0, 0, 0.5);
+  --shadow-xs: 0 1px 2px rgba(0,0,0,0.4);
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.45);
+  --shadow-md: 0 1px 3px rgba(0,0,0,0.5);
+  --shadow-lg: 0 2px 8px rgba(0,0,0,0.55);
+  --shadow-xl: 0 6px 20px rgba(0,0,0,0.6);
+  --shadow-card: 0 1px 2px rgba(0,0,0,0.35);
+  --shadow-pop: 0 6px 20px rgba(0,0,0,0.6);
 }

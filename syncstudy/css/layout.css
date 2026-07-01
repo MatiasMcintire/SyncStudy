@@ -188,7 +188,9 @@ body {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  background: var(--color-bg);
+  /* transparente a propósito: deja ver la grilla del body (la firma editorial).
+     El topbar sticky de abajo sí va opaco para tapar el contenido al scrollear. */
+  background: transparent;
 }
 
 .topbar {
@@ -289,6 +291,22 @@ body {
 
   .sidebar.open {
     transform: translateX(0);
+  }
+
+  /* Velo detrás del menú abierto (entre main y sidebar). */
+  .menu-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 90;
+    background: rgba(33, 31, 27, 0.38);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity var(--transition-base);
+  }
+
+  .sidebar.open ~ .menu-backdrop {
+    opacity: 1;
+    visibility: visible;
   }
 
   .topbar__menu {

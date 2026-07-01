@@ -2,6 +2,27 @@
 /* UTILIDADES                                    */
 /* ============================================ */
 
+// ===== AVATARES =====
+// Identidad editorial: las tintas de avatar son apagadas, no neón. Mapeo de los
+// colores viejos saturados (ya guardados en la DB) a su tinta editorial, para que
+// los usuarios existentes se vean bien sin migrar nada. Las tintas nuevas (las que
+// ya elige el picker) no están en el map y pasan tal cual.
+const AVATAR_INK_BY_LEGACY = {
+  '#2563eb': '#4F6076', // azul     → pizarra
+  '#ec4899': '#9A5E81', // rosa     → ciruela
+  '#f59e0b': '#B17A3C', // naranja  → ocre
+  '#10b981': '#5E7D5A', // verde    → salvia
+  '#8b5cf6': '#74608C', // violeta  → lavanda
+  '#06b6d4': '#4E7C80', // turquesa → verdemar
+  '#ef4444': '#A8473B', // rojo     → terracota
+};
+// ponytail: mapeo por hex exacto, no conversión HSL. Colores fuera de la paleta
+// pasan sin apagar — agregar un clamp solo si algún día hay colores libres.
+function avatarColor(u) {
+  const c = ((u && u.color) || '').toLowerCase();
+  return AVATAR_INK_BY_LEGACY[c] || c || '#8A857B';
+}
+
 // ===== FECHAS =====
 
 const DAY_MS = 24 * 60 * 60 * 1000;

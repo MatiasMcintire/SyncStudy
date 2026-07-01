@@ -10,7 +10,7 @@
 
   <!-- PWA: app instalable en el celular -->
   <link rel="manifest" href="manifest.json" />
-  <meta name="theme-color" content="#6366F1" />
+  <meta name="theme-color" content="#FBF9F3" />
   <link rel="icon" type="image/png" href="icons/favicon-64.png" />
   <!-- iOS: instalación y pantalla completa -->
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
@@ -19,11 +19,11 @@
   <meta name="apple-mobile-web-app-title" content="SyncStudy" />
   <meta name="mobile-web-app-capable" content="yes" />
 
-  <!-- Tipografía Plus Jakarta Sans desde Google Fonts -->
+  <!-- Tipografía editorial: Fraunces (serif display) + Hanken Grotesk (body) -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link
-    href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+    href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap"
     rel="stylesheet"
   />
 
@@ -32,11 +32,11 @@
   <script src="https://unpkg.com/lucide@1.21.0/dist/umd/lucide.js"></script>
 
   <!-- Hojas de estilo (con cache-bust para evitar versiones obsoletas en dev) -->
-  <link rel="stylesheet" href="css/reset.css?v=31" />
-  <link rel="stylesheet" href="css/variables.css?v=31" />
-  <link rel="stylesheet" href="css/layout.css?v=31" />
-  <link rel="stylesheet" href="css/components.css?v=31" />
-  <link rel="stylesheet" href="css/views.css?v=31" />
+  <link rel="stylesheet" href="css/reset.css?v=35" />
+  <link rel="stylesheet" href="css/variables.css?v=35" />
+  <link rel="stylesheet" href="css/layout.css?v=35" />
+  <link rel="stylesheet" href="css/components.css?v=35" />
+  <link rel="stylesheet" href="css/views.css?v=35" />
 
   <!-- CSS crítico del overlay de login: inline para que no quede a merced del cache. -->
   <style>
@@ -47,7 +47,7 @@
       align-items: center;
       justify-content: center;
       padding: 24px;
-      background: linear-gradient(135deg, #EEF2FF 0%, #F5F3FF 55%, #FFF1F2 100%);
+      background: linear-gradient(135deg, #FBF9F3 0%, #F3EEE3 100%);
       z-index: 9999;
     }
     .login-screen.open { display: flex; }
@@ -118,6 +118,10 @@
     </div>
   </aside>
 
+  <!-- Velo del menú móvil: se muestra solo cuando el sidebar está abierto.
+       El cierre al tocar afuera ya lo maneja app.js. -->
+  <div class="menu-backdrop" aria-hidden="true"></div>
+
   <!-- =================================================== -->
   <!-- ÁREA PRINCIPAL -->
   <!-- =================================================== -->
@@ -140,62 +144,52 @@
     <!-- VISTA: HOY -->
     <!-- =================================================== -->
     <section class="view view--today active" data-view="today">
-      <!-- HERO -->
-      <div class="dash-hero">
-        <div class="dash-hero__content">
-          <h2 class="dash-hero__greeting" id="todayGreeting">Hola 👋</h2>
-          <p class="dash-hero__subtitle" id="todaySubtitle">Tu grupo está sincronizado.</p>
-          <div class="dash-hero__stats" id="heroStats"><!-- stats por JS --></div>
+      <div class="hoy">
+        <!-- saludo -->
+        <div class="hoy__greeting">
+          <div class="hoy__date" id="todayDate">—</div>
+          <h2 class="hoy__hello" id="todayGreeting">—</h2>
         </div>
-        <div class="dash-hero__art" aria-hidden="true">
-          <svg viewBox="0 0 200 170" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect x="58" y="42" width="108" height="98" rx="18" fill="#ffffff" opacity="0.28"/>
-            <rect x="36" y="28" width="108" height="98" rx="18" fill="#ffffff" opacity="0.94"/>
-            <rect x="36" y="28" width="108" height="44" rx="18" fill="#E0E7FF"/>
-            <rect x="36" y="54" width="108" height="18" fill="#E0E7FF"/>
-            <rect x="60" y="20" width="9" height="20" rx="4" fill="#4F46E5"/>
-            <rect x="111" y="20" width="9" height="20" rx="4" fill="#4F46E5"/>
-            <path d="M62 92 l15 15 l30 -33" stroke="#6366F1" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/>
-            <circle cx="178" cy="36" r="7" fill="#fff" opacity="0.85"/>
-            <circle cx="20" cy="118" r="5" fill="#fff" opacity="0.7"/>
-            <circle cx="184" cy="116" r="9" fill="#fff" opacity="0.5"/>
-          </svg>
+
+        <!-- strip de semana -->
+        <div class="weekstrip" id="weekStrip" aria-hidden="true"><!-- por JS --></div>
+
+        <!-- HOY: lista reglada de tareas -->
+        <div class="hoy-section">
+          <div class="hoy-section__head">
+            <span class="hoy-section__label">Hoy</span>
+            <span class="hoy-section__spacer"></span>
+            <span class="hoy-section__count" id="todayCount">Pendientes (0)</span>
+          </div>
+          <div class="ruled-list" id="todayTaskList"><!-- por JS --></div>
         </div>
-      </div>
 
-      <!-- GRID DE MÓDULOS -->
-      <div class="dash-grid">
-        <section class="module module--progress">
-          <header class="module__head">
-            <span class="module__icon"><i data-lucide="trending-up"></i></span>
-            <h3>Progreso semanal</h3>
-          </header>
-          <div id="weeklyProgressBody"><!-- por JS --></div>
-        </section>
-
-        <section class="module module--tasks">
-          <header class="module__head">
-            <span class="module__icon"><i data-lucide="target"></i></span>
-            <h3>Tus tareas prioritarias</h3>
-          </header>
-          <div class="task-list" id="todayTaskList"><!-- por JS --></div>
-        </section>
-
-        <section class="module module--activity">
-          <header class="module__head">
-            <span class="module__icon"><i data-lucide="activity"></i></span>
-            <h3>Actividad del grupo</h3>
-          </header>
-          <div id="groupActivityBody"><!-- por JS --></div>
-        </section>
-
-        <section class="module module--calendar">
-          <header class="module__head">
-            <span class="module__icon"><i data-lucide="calendar-days"></i></span>
-            <h3 id="miniCalLabel">—</h3>
-          </header>
-          <div class="mini-cal" id="miniCal"><!-- por JS --></div>
-        </section>
+        <!-- TU GRUPO -->
+        <div class="hoy-section" id="hoyGroupSection" hidden>
+          <div class="hoy-section__head">
+            <span class="hoy-section__label">Tu grupo</span>
+            <span class="hoy-section__spacer"></span>
+            <span class="hoy-section__count" id="groupCount">Miembros (0)</span>
+          </div>
+          <div class="hoy-group__title-row">
+            <h3 class="hoy-group__name" id="hoyGroupName">—</h3>
+            <div class="avatar-stack" id="hoyGroupAvatars"><!-- por JS --></div>
+          </div>
+          <div class="hoy-invite">
+            <div class="hoy-invite__label">Código de invitación</div>
+            <div class="hoy-invite__row">
+              <button class="hoy-invite__code" id="hoyInviteCode" type="button" title="Copiar código">——————</button>
+              <span class="hoy-invite__hint">Compártelo para sumar gente al grupo.</span>
+            </div>
+          </div>
+          <div class="hoy-progress">
+            <div class="hoy-progress__top">
+              <span class="hoy-progress__label">Progreso del grupo</span>
+              <span class="hoy-progress__count"><b id="hoyProgDone">0</b> / <span id="hoyProgTotal">0</span> tareas</span>
+            </div>
+            <div class="hoy-progress__bar"><div class="hoy-progress__fill" id="hoyProgFill" style="width:0%"></div></div>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -262,47 +256,18 @@
     <!-- VISTA: RESUMEN SEMANAL -->
     <!-- =================================================== -->
     <section class="view view--weekly" data-view="weekly">
-      <div class="weekly__hero">
-        <h2>Tu semana en SyncStudy</h2>
-        <p class="weekly__caption">Lo que lograste, no lo que faltó.</p>
-      </div>
+      <header class="weekly__lead">
+        <span class="weekly__kicker" id="weeklyKicker">—</span>
+        <h2 class="weekly__headline" id="weeklyHeadline">—</h2>
+        <p class="weekly__deck" id="weeklyDeck">—</p>
+      </header>
 
-      <div class="weekly__cards">
-        <div class="weekly-card weekly-card--primary">
-          <span class="card__label">Tareas completadas</span>
-          <span class="card__number" id="weeklyDoneCount">0</span>
-          <span class="card__delta" id="weeklyDoneDelta">de tu propio plan</span>
-          <div class="card__breakdown" id="weeklyOnTimeBreakdown">
-            <span class="card__breakdown-item">
-              <span class="card__breakdown-dot card__breakdown-dot--ok"></span>
-              <span><b id="weeklyOnTime">0</b> a tiempo</span>
-            </span>
-            <span class="card__breakdown-item">
-              <span class="card__breakdown-dot card__breakdown-dot--late"></span>
-              <span><b id="weeklyLate">0</b> tarde</span>
-            </span>
-          </div>
-        </div>
-        <div class="weekly-card">
-          <span class="card__label">Días con avance</span>
-          <span class="card__number" id="weeklyActiveDays">0</span>
-          <span class="card__delta">de 7</span>
-        </div>
-        <div class="weekly-card">
-          <span class="card__label">Tu grupo logró</span>
-          <span class="card__number" id="weeklyGroupDone">0</span>
-          <span class="card__delta">tareas en total</span>
-        </div>
-      </div>
-
-      <div class="weekly__message" id="weeklyMessage">
-        Sigue así. Esta semana ya empezó a contar.
-      </div>
+      <p class="weekly__aside" id="weeklyMessage" hidden></p>
 
       <div class="two-cols">
         <div class="weekly__section two-cols__main" id="weeklyRankingSection" hidden>
           <div class="weekly__section-header">
-            <h3>Ranking del grupo · esta semana</h3>
+            <h3>Ranking del grupo</h3>
             <span class="weekly__section-hint">Por tareas a tiempo</span>
           </div>
           <ol class="weekly__ranking" id="weeklyRanking"></ol>
@@ -310,7 +275,7 @@
 
         <div class="weekly__section two-cols__side" id="weeklyLateSection" hidden>
           <div class="weekly__section-header">
-            <h3>Completadas fuera de plazo</h3>
+            <h3>Fuera de plazo</h3>
             <span class="weekly__section-hint">Esta semana</span>
           </div>
           <ul class="weekly__late-list" id="weeklyLateList"></ul>
@@ -340,6 +305,13 @@
 
       <form class="modal__form" id="taskForm">
         <input type="hidden" id="taskId" />
+        <input type="hidden" id="taskType" value="task" />
+
+        <!-- Selector de tipo: tarea (con checkbox) o nota/recordatorio -->
+        <div class="type-switch" id="taskTypeSwitch" role="group" aria-label="Tipo de entrada">
+          <button type="button" class="type-switch__btn is-active" data-type="task" aria-pressed="true">Tarea</button>
+          <button type="button" class="type-switch__btn" data-type="note" aria-pressed="false">Nota</button>
+        </div>
 
         <!-- Toggle de completada (solo visible al editar) -->
         <label class="task-complete-toggle" id="taskCompleteToggle" hidden>
@@ -376,7 +348,7 @@
             <input type="date" id="taskDate" required />
           </label>
 
-          <label class="field">
+          <label class="field" id="taskSubjectField">
             <span class="field__label">Asignatura</span>
             <select id="taskSubject">
               <option value="General">General</option>
@@ -389,7 +361,7 @@
           </label>
         </div>
 
-        <label class="field">
+        <label class="field" id="taskPriorityField">
           <span class="field__label">Prioridad</span>
           <div class="priority-options">
             <label class="priority-option">
@@ -577,12 +549,12 @@
         <div class="field">
           <span class="field__label">Color</span>
           <div class="color-swatches" id="profileColorSwatches">
-            <button type="button" class="color-swatch" data-color="#2563eb" style="background:#2563eb" aria-label="Azul" aria-pressed="false"></button>
-            <button type="button" class="color-swatch" data-color="#ec4899" style="background:#ec4899" aria-label="Rosa" aria-pressed="false"></button>
-            <button type="button" class="color-swatch" data-color="#f59e0b" style="background:#f59e0b" aria-label="Naranja" aria-pressed="false"></button>
-            <button type="button" class="color-swatch" data-color="#10b981" style="background:#10b981" aria-label="Verde" aria-pressed="false"></button>
-            <button type="button" class="color-swatch" data-color="#8b5cf6" style="background:#8b5cf6" aria-label="Violeta" aria-pressed="false"></button>
-            <button type="button" class="color-swatch" data-color="#06b6d4" style="background:#06b6d4" aria-label="Turquesa" aria-pressed="false"></button>
+            <button type="button" class="color-swatch" data-color="#4F6076" style="background:#4F6076" aria-label="Pizarra" aria-pressed="false"></button>
+            <button type="button" class="color-swatch" data-color="#9A5E81" style="background:#9A5E81" aria-label="Ciruela" aria-pressed="false"></button>
+            <button type="button" class="color-swatch" data-color="#B17A3C" style="background:#B17A3C" aria-label="Ocre" aria-pressed="false"></button>
+            <button type="button" class="color-swatch" data-color="#5E7D5A" style="background:#5E7D5A" aria-label="Salvia" aria-pressed="false"></button>
+            <button type="button" class="color-swatch" data-color="#74608C" style="background:#74608C" aria-label="Lavanda" aria-pressed="false"></button>
+            <button type="button" class="color-swatch" data-color="#4E7C80" style="background:#4E7C80" aria-label="Verdemar" aria-pressed="false"></button>
           </div>
         </div>
 
@@ -659,6 +631,14 @@
           <input type="password" id="registerPassword" minlength="8" autocomplete="new-password" />
           <span class="field__hint">Mínimo 8 caracteres.</span>
         </label>
+        <label class="field">
+          <span class="field__label">Confirmar contraseña</span>
+          <!-- Guía de coincidencia: una celda por carácter; se tiñe a medida
+               que coincide (no expone la contraseña, solo puntos). -->
+          <div class="pwconfirm" id="pwConfirmGuide" aria-hidden="true"></div>
+          <input type="password" id="registerPassword2" autocomplete="new-password" placeholder="Repite tu contraseña" />
+          <span class="field__hint" id="pwConfirmHint">Debe coincidir con la de arriba.</span>
+        </label>
         <p class="login-error" id="registerError" hidden></p>
         <button type="submit" class="btn btn--primary btn--full" id="registerSubmit">
           <i data-lucide="user-plus"></i>
@@ -678,10 +658,10 @@
   <!-- =================================================== -->
   <!-- SDK de PocketBase (cliente HTTP + realtime) -->
   <script src="https://cdn.jsdelivr.net/npm/pocketbase@0.26.9/dist/pocketbase.umd.js"></script>
-  <script src="js/storage.js?v=31"></script>
-  <script src="js/utils.js?v=31"></script>
-  <script src="js/views.js?v=31"></script>
-  <script src="js/app.js?v=31"></script>
+  <script src="js/storage.js?v=35"></script>
+  <script src="js/utils.js?v=35"></script>
+  <script src="js/views.js?v=35"></script>
+  <script src="js/app.js?v=35"></script>
 
   <!-- PWA: registrar el service worker (solo en https o localhost) -->
   <script>
