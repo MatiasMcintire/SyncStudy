@@ -32,11 +32,11 @@
   <script src="https://unpkg.com/lucide@1.21.0/dist/umd/lucide.js"></script>
 
   <!-- Hojas de estilo (con cache-bust para evitar versiones obsoletas en dev) -->
-  <link rel="stylesheet" href="css/reset.css?v=36" />
-  <link rel="stylesheet" href="css/variables.css?v=36" />
-  <link rel="stylesheet" href="css/layout.css?v=36" />
-  <link rel="stylesheet" href="css/components.css?v=36" />
-  <link rel="stylesheet" href="css/views.css?v=36" />
+  <link rel="stylesheet" href="css/reset.css?v=37" />
+  <link rel="stylesheet" href="css/variables.css?v=37" />
+  <link rel="stylesheet" href="css/layout.css?v=37" />
+  <link rel="stylesheet" href="css/components.css?v=37" />
+  <link rel="stylesheet" href="css/views.css?v=37" />
 
   <!-- CSS crítico del overlay de login: inline para que no quede a merced del cache. -->
   <style>
@@ -306,6 +306,7 @@
       <form class="modal__form" id="taskForm">
         <input type="hidden" id="taskId" />
         <input type="hidden" id="taskType" value="task" />
+        <input type="hidden" id="taskVisibility" value="shared" />
 
         <!-- Selector de tipo: tarea (con checkbox) o nota/recordatorio -->
         <div class="type-switch" id="taskTypeSwitch" role="group" aria-label="Tipo de entrada">
@@ -360,6 +361,16 @@
             </select>
           </label>
         </div>
+
+        <!-- Visibilidad (solo notas): compartida con el grupo o privada -->
+        <label class="field" id="taskVisibilityField" hidden>
+          <span class="field__label">Visibilidad</span>
+          <div class="type-switch" id="taskVisibilitySwitch" role="group" aria-label="Visibilidad de la nota">
+            <button type="button" class="type-switch__btn is-active" data-vis="shared" aria-pressed="true">Compartida</button>
+            <button type="button" class="type-switch__btn" data-vis="private" aria-pressed="false">Privada</button>
+          </div>
+          <span class="field__hint" id="taskVisibilityHint">La ve todo tu grupo.</span>
+        </label>
 
         <label class="field" id="taskPriorityField">
           <span class="field__label">Prioridad</span>
@@ -658,10 +669,10 @@
   <!-- =================================================== -->
   <!-- SDK de PocketBase (cliente HTTP + realtime) -->
   <script src="https://cdn.jsdelivr.net/npm/pocketbase@0.26.9/dist/pocketbase.umd.js"></script>
-  <script src="js/storage.js?v=36"></script>
-  <script src="js/utils.js?v=36"></script>
-  <script src="js/views.js?v=36"></script>
-  <script src="js/app.js?v=36"></script>
+  <script src="js/storage.js?v=37"></script>
+  <script src="js/utils.js?v=37"></script>
+  <script src="js/views.js?v=37"></script>
+  <script src="js/app.js?v=37"></script>
 
   <!-- PWA: registrar el service worker (solo en https o localhost) -->
   <script>

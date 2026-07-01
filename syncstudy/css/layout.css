@@ -25,6 +25,7 @@ body {
   position: sticky;
   top: 0;
   height: 100vh;
+  height: 100dvh; /* iOS: descuenta la barra del navegador (si no, el perfil de abajo queda tapado) */
   overflow-y: auto;
   transition: transform var(--transition-base);
 }
@@ -282,11 +283,15 @@ body {
     position: fixed;
     left: 0;
     top: 0;
-    z-index: 100;
+    /* Por encima del toast (2000) para que el menú abierto lo tape y no se
+       superponga sobre el perfil de abajo. */
+    z-index: 2100;
     transform: translateX(-100%);
     width: 80%;
     max-width: 280px;
     box-shadow: var(--shadow-xl);
+    /* Respeta el notch/home-indicator del iPhone para que el perfil no quede pegado al borde. */
+    padding-bottom: max(var(--space-6), env(safe-area-inset-bottom));
   }
 
   .sidebar.open {
@@ -297,7 +302,7 @@ body {
   .menu-backdrop {
     position: fixed;
     inset: 0;
-    z-index: 90;
+    z-index: 2050; /* debajo del sidebar (2100) pero encima del toast (2000) */
     background: rgba(33, 31, 27, 0.38);
     opacity: 0;
     visibility: hidden;

@@ -179,7 +179,8 @@ const App = {
 
     cf.addEventListener('input', () => {
       // No se puede tipear más allá del largo de la contraseña: recorta + shake.
-      if (cf.value.length > pw.value.length) {
+      // (Solo si ya hay contraseña; con el campo de arriba vacío se deja escribir.)
+      if (pw.value.length > 0 && cf.value.length > pw.value.length) {
         cf.value = cf.value.slice(0, pw.value.length);
         shake();
       }
@@ -674,6 +675,11 @@ const App = {
       btn.addEventListener('click', () => this._setTaskType(btn.dataset.type));
     });
 
+    // Selector Compartida / Privada (solo notas)
+    $$('#taskVisibilitySwitch .type-switch__btn').forEach(btn => {
+      btn.addEventListener('click', () => this._setTaskVisibility(btn.dataset.vis));
+    });
+
     // Botón eliminar
     $('#btnDeleteTask').addEventListener('click', () => this.handleDeleteTask());
 
@@ -803,6 +809,7 @@ const App = {
     const isNote = t === 'note';
     $('#taskPriorityField').hidden = isNote;
     $('#taskSubjectField').hidden = isNote;
+    $('#taskVisibilityField').hidden = !isNote; // visibilidad solo aplica a notas
     // El toggle de completada solo aplica a tareas en edición.
     $('#taskCompleteToggle').hidden = isNote || this._taskModalMode !== 'edit';
     const noun = isNote ? 'nota' : 'tarea';
@@ -810,6 +817,20 @@ const App = {
     $('#taskTitle').placeholder = isNote
       ? 'Ej: hoy vence la factura'
       : 'Ej: Estudiar para prueba de Suelos';
+  },
+
+  // Compartida (la ve el grupo) o privada (solo el autor).
+  _setTaskVisibility(vis) {
+    const v = vis === 'private' ? 'private' : 'shared';
+    $('#taskVisibility').value = v;
+    $$('#taskVisibilitySwitch .type-switch__btn').forEach(btn => {
+      const on = btn.dataset.vis === v;
+      btn.classList.toggle('is-active', on);
+      btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+    });
+    $('#taskVisibilityHint').textContent = v === 'private'
+      ? 'Solo la ves vos.'
+      : 'La ve todo tu grupo.';
   },
 
   openTaskModal(taskId = null) {
@@ -849,6 +870,7 @@ const App = {
         $('#taskCompleteHint').textContent = isOverdue(task)
           ? 'Esta tarea está vencida; quedará marcada como "completada tarde".'
           : 'Cierra el ciclo de la tarea.';
+        this._setTaskVisibility(task.private ? 'private' : 'shared');
         this._setTaskType(task.type || 'task');
       } else {
         // Tarea de un compañero: solo título + meta + comentarios. Sin form.
@@ -856,9 +878,11 @@ const App = {
         readonlyView.hidden = false;
         const author = Storage.getUser(task.userId);
         const group = Storage.getMyGroups().find(g => g.id === task.groupId);
+        const roNote = task.type === 'note';
+        const roNoun = roNote ? 'Nota' : 'Tarea';
         title.textContent = author
-          ? `Tarea de ${author.name.split(' ')[0]}`
-          : 'Tarea del grupo';
+          ? `${roNoun} de ${author.name.split(' ')[0]}`
+          : `${roNoun} del grupo`;
         const titleEl = $('#readonlyTitle');
         titleEl.textContent = task.title;
         titleEl.classList.toggle('completed', !!task.completed);
@@ -890,13 +914,18 @@ const App = {
             group.name
           ]));
         }
-        meta.appendChild(el('span', {
-          class: `priority-pill priority-pill--${priorityClass(task.priority)}`
-        }, priorityLabel(task.priority)));
-        meta.appendChild(el('span', {
-          class: 'task-readonly__meta-item',
-          style: `color: ${task.completed ? 'var(--color-success)' : 'var(--color-warning)'}; font-weight: 500;`
-        }, task.completed ? '✓ Completada' : 'Pendiente'));
+        // Las notas no tienen prioridad ni estado de completado.
+        if (roNote) {
+          meta.appendChild(el('span', { class: 'cal-day-zoom__tag-note' }, 'Nota'));
+        } else {
+          meta.appendChild(el('span', {
+            class: `priority-pill priority-pill--${priorityClass(task.priority)}`
+          }, priorityLabel(task.priority)));
+          meta.appendChild(el('span', {
+            class: 'task-readonly__meta-item',
+            style: `color: ${task.completed ? 'var(--color-success)' : 'var(--color-warning)'}; font-weight: 500;`
+          }, task.completed ? '✓ Completada' : 'Pendiente'));
+        }
 
         const desc = $('#readonlyDesc');
         if (task.description) {
@@ -919,6 +948,7 @@ const App = {
       $('#taskCompleteToggle').hidden = true;
       $('#taskCompleted').checked = false;
       commentsSection.hidden = true;
+      this._setTaskVisibility('shared');
       this._setTaskType('task');
     }
 
@@ -992,6 +1022,8 @@ const App = {
     const id = $('#taskId').value;
     const type = $('#taskType').value === 'note' ? 'note' : 'task';
     const isNote = type === 'note';
+    // La privacidad solo aplica a notas; una tarea siempre es del grupo.
+    const isPrivate = isNote && $('#taskVisibility').value === 'private';
     const title = $('#taskTitle').value.trim();
     const description = $('#taskDescription').value.trim();
     const dateStr = $('#taskDate').value;
@@ -1014,13 +1046,13 @@ const App = {
         // El checkbox del modal permite completar/reabrir desde acá (solo tareas).
         const completed = !isNote && $('#taskCompleted').checked;
         const before = Storage.getTask(id);
-        Storage.updateTask(id, { title, description, dueDate, subject, priority, type, completed });
+        Storage.updateTask(id, { title, description, dueDate, subject, priority, type, private: isPrivate, completed });
         if (completed && before && !before.completed) {
           playCompleteSound();
         }
         showToast(`${noun} actualizada`, 'check');
       } else {
-        await Storage.createTask({ title, description, dueDate, subject, priority, type });
+        await Storage.createTask({ title, description, dueDate, subject, priority, type, private: isPrivate });
         showToast(`${noun} creada`, 'check');
       }
     } catch (err) {

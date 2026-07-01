@@ -399,6 +399,7 @@ const Storage = {
       subject: taskData.subject || 'General',
       priority: taskData.priority || 2,
       type: taskData.type || 'task',
+      private: !!taskData.private,
       completed: false
     });
     const real = await this._pb.collection('tasks').create(payload);
@@ -623,6 +624,7 @@ const Storage = {
       subject: t.subject || 'General',
       priority: t.priority || 2,
       type: t.type || 'task',
+      private: !!t.private,
       completed: !!t.completed,
       createdAt: new Date(t.created).getTime(),
       updatedAt: new Date(t.updated || t.created).getTime(),
@@ -640,6 +642,7 @@ const Storage = {
       subject: t.subject || 'General',
       priority: t.priority || 2,
       type: t.type || 'task',
+      private: !!t.private,
       completed: !!t.completed
     };
     // PocketBase espera 'YYYY-MM-DD HH:mm:ss.sssZ' o cadena vacía para null.

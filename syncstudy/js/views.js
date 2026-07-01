@@ -140,13 +140,15 @@ const Views = {
 
   // Fila de nota/recordatorio (editorial): sin checkbox, marcador en vez de check.
   _renderHoyNoteRow(note) {
-    const label = (note.subject && note.subject !== 'General') ? note.subject : 'Recordatorio';
+    const base = (note.subject && note.subject !== 'General') ? note.subject : 'Recordatorio';
+    const label = note.private ? `${base} · privada` : base;
     const row = el('div', {
       class: 'rl-item rl-item--note',
       dataset: { taskId: note.id }
     }, [
       el('span', { class: 'rl-item__bar rl-item__bar--note' }),
-      el('span', { class: 'rl-item__dot', 'aria-hidden': 'true' }, [el('i', { 'data-lucide': 'bookmark' })]),
+      el('span', { class: 'rl-item__dot', 'aria-hidden': 'true' },
+        [el('i', { 'data-lucide': note.private ? 'lock' : 'bookmark' })]),
       el('div', { class: 'rl-item__body' }, [
         el('div', { class: 'rl-item__title' }, note.title),
         el('div', { class: 'rl-item__meta' }, label)
