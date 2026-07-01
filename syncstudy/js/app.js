@@ -829,8 +829,8 @@ const App = {
       btn.setAttribute('aria-pressed', on ? 'true' : 'false');
     });
     $('#taskVisibilityHint').textContent = v === 'private'
-      ? 'Solo la ves vos.'
-      : 'La ve todo tu grupo.';
+      ? 'Solo lo ves tú.'
+      : 'Lo ven todos en el grupo.';
   },
 
   openTaskModal(taskId = null) {
